@@ -1,0 +1,1255 @@
+<!DOCTYPE html>
+<html lang="tl">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <meta name="theme-color" content="#0B1957" />
+  <meta name="application-name" content="JoyRideCalc" />
+  <link rel="manifest" href="./manifest.webmanifest" />
+  <meta name="apple-mobile-web-app-title" content="JoyRideCalc" />
+  <meta name="mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="default" />
+  <title>JoyRideCalc — JoyRide Fare Calculator</title>
+
+  <!-- Dynamic SVG Favicon: JoyRide-inspired Emblem + Calculator Badge -->
+  <link
+    id="dynamicFavicon"
+    rel="icon"
+    type="image/svg+xml"
+    href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='16' fill='%230B1957'/%3E%3Ccircle cx='20' cy='43' r='7' fill='none' stroke='%23FFFFFF' stroke-width='3.5'/%3E%3Ccircle cx='42' cy='43' r='7' fill='none' stroke='%23FFFFFF' stroke-width='3.5'/%3E%3Cpath d='M14 23h7l5 12h14l5-9' fill='none' stroke='%2360A5FA' stroke-width='3.5' stroke-linecap='round' stroke-linejoin='round'/%3E%3Crect x='38' y='8' width='18' height='20' rx='4' fill='%23F59E0B' stroke='%230B1957' stroke-width='2'/%3E%3Cpath d='M42 13h10M42 18h4M50 18h2M42 23h10' stroke='%230B1957' stroke-width='2' stroke-linecap='round'/%3E%3C/svg%3E"
+  />
+
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          fontFamily: {
+            sans: ['Inter', '-apple-system', 'BlinkMacSystemFont', 'sans-serif']
+          },
+          colors: {
+            jrNavy: '#0B1957',
+            jrBlue: '#1D4ED8',
+            jrAmber: '#F59E0B',
+            jrSurface: '#F2F4F8',
+            jrCard: '#FFFFFF',
+            jrBorder: '#E2E8F0'
+          }
+        }
+      }
+    };
+  </script>
+
+  <style>
+    * {
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    body {
+      background-color: #E6EAF2;
+      color: #0F172A;
+      overscroll-behavior-y: contain;
+    }
+
+    ::-webkit-scrollbar {
+      width: 4px;
+      height: 4px;
+    }
+
+    ::-webkit-scrollbar-thumb {
+      background: #CBD5E1;
+      border-radius: 9999px;
+    }
+
+    input[type="number"]::-webkit-inner-spin-button,
+    input[type="number"]::-webkit-outer-spin-button {
+      -webkit-appearance: none;
+      margin: 0;
+    }
+
+    input[type="number"] {
+      -moz-appearance: textfield;
+    }
+
+    .press-effect {
+      transition: transform 0.1s ease, background-color 0.15s ease, border-color 0.15s ease, box-shadow 0.15s ease;
+    }
+
+    .press-effect:active {
+      transform: scale(0.98);
+    }
+  </style>
+</head>
+<body class="min-h-screen flex justify-center bg-[#E6EAF2] text-slate-900">
+
+  <!-- Main Responsive Mobile-First App Container -->
+  <div class="w-full max-w-md min-h-screen bg-[#F2F4F8] border-x border-[#E2E8F0] shadow-2xl flex flex-col relative pb-24">
+
+    <!-- ========================================================= -->
+    <!-- TOP HEADER BAR & MODE SWITCHER TABS                       -->
+    <!-- ========================================================= -->
+    <header class="bg-white sticky top-0 z-30 border-b border-[#E2E8F0] shadow-xs">
+      <!-- Top Bar -->
+      <div class="px-4 pt-3.5 pb-3 flex items-center justify-between gap-2.5">
+        <!-- App Title + Subtitle -->
+        <div class="flex items-center min-w-0">
+          <div class="min-w-0">
+            <h1 class="font-extrabold text-base sm:text-lg tracking-tight leading-tight text-[#0B1957] truncate">
+              JoyRide Fare Calculator
+            </h1>
+            <p class="text-xs font-medium text-slate-500 leading-tight mt-0.5 truncate">
+              by XioMarley
+            </p>
+          </div>
+        </div>
+
+      </div>
+
+      <!-- Mode Switcher Tabs (Directly below Top Bar) -->
+      <div class="grid grid-cols-2 px-4 pb-3 gap-2">
+        <button
+          type="button"
+          id="topTabCalc"
+          onclick="switchTab('calc')"
+          class="press-effect py-2 text-xs font-bold rounded-xl bg-[#0B1957] text-white shadow-xs transition"
+        >
+          Calculator
+        </button>
+        <button
+          type="button"
+          id="topTabLog"
+          onclick="switchTab('log')"
+          class="press-effect py-2 text-xs font-bold rounded-xl bg-[#F2F4F8] text-slate-600 border border-[#E2E8F0] hover:text-[#0B1957] transition flex items-center justify-center gap-1.5"
+        >
+          <span>Biyahe Today</span>
+          <span id="topTripBadge" class="bg-[#1D4ED8] text-white text-[10px] font-extrabold px-1.5 py-0.5 rounded-full leading-none">
+            0
+          </span>
+        </button>
+      </div>
+    </header>
+
+    <!-- Toast Notification Banner -->
+    <div id="toastBanner" class="fixed top-24 left-1/2 -translate-x-1/2 z-50 hidden transition-all duration-300 pointer-events-none">
+      <div class="bg-[#0B1957] text-white text-xs font-semibold px-4 py-2.5 rounded-full shadow-xl flex items-center gap-2 border border-white/15">
+        <span class="w-2 h-2 rounded-full bg-[#F59E0B]"></span>
+        <span id="toastText">Na-save sa Biyahe Today!</span>
+      </div>
+    </div>
+
+    <!-- ========================================================= -->
+    <!-- TAB 1: CALCULATOR VIEW (6 DISTINCT PANELS)                -->
+    <!-- ========================================================= -->
+    <main id="calcView" class="p-4 space-y-4 flex-1">
+
+      <!-- PANEL 1: DISTANCE INPUT PANEL -->
+      <section class="bg-white rounded-2xl p-4 border border-[#E2E8F0] shadow-xs space-y-2.5">
+        <div class="flex items-center justify-between">
+          <label for="distanceInput" class="text-xs font-extrabold uppercase tracking-wider text-[#0B1957]">
+            1. Distansya ng Biyahe
+          </label>
+          <button
+            type="button"
+            onclick="resetDistanceAndInputs()"
+            class="press-effect text-xs font-bold text-[#1D4ED8] hover:text-[#0B1957] bg-[#F2F4F8] hover:bg-blue-50 border border-[#E2E8F0] px-2.5 py-1 rounded-lg"
+          >
+            Reset
+          </button>
+        </div>
+
+        <div class="relative flex items-center">
+          <input
+            type="number"
+            id="distanceInput"
+            inputmode="decimal"
+            step="0.1"
+            min="0"
+            placeholder="0.0"
+            value="10.4"
+            oninput="calculateAll()"
+            class="w-full text-3xl font-extrabold text-[#0B1957] bg-[#F2F4F8] border-2 border-[#E2E8F0] focus:border-[#1D4ED8] focus:bg-white rounded-2xl px-4 py-3 pr-16 outline-none transition placeholder-slate-400"
+          />
+          <span class="absolute right-3.5 text-xs font-extrabold text-[#0B1957] bg-amber-100 border border-[#F59E0B]/40 px-2.5 py-1 rounded-lg">
+            KM
+          </span>
+        </div>
+      </section>
+
+      <!-- PANEL 2: COMMISSION TIER TOGGLE PANEL -->
+      <section class="bg-white rounded-2xl p-4 border border-[#E2E8F0] shadow-xs space-y-2.5">
+        <div class="flex items-center justify-between gap-2">
+          <span class="text-xs font-extrabold uppercase tracking-wider text-[#0B1957]">
+            2. Commission Tier
+          </span>
+          <span id="activeTierPill" class="text-[11px] font-bold text-[#1D4ED8] bg-blue-50 border border-blue-200 px-2.5 py-0.5 rounded-full">
+            20% Kasundo
+          </span>
+        </div>
+
+        <div id="commissionTierGroup" role="group" aria-label="Commission Tier Options" class="grid grid-cols-2 gap-2">
+          <button
+            type="button"
+            data-rate="0.20"
+            data-name="Kasundo"
+            onclick="selectCommissionTier(0.20, 'Kasundo')"
+            class="comm-tier-btn press-effect flex flex-col items-start p-2.5 rounded-xl border-2 border-[#1D4ED8] bg-blue-50/80 text-left"
+          >
+            <span class="text-sm font-extrabold text-[#0B1957]">20% Kasundo</span>
+            <span class="text-[11px] font-semibold text-[#1D4ED8]">Standard Tier</span>
+          </button>
+
+          <button
+            type="button"
+            data-rate="0.18"
+            data-name="Master"
+            onclick="selectCommissionTier(0.18, 'Master')"
+            class="comm-tier-btn press-effect flex flex-col items-start p-2.5 rounded-xl border border-[#E2E8F0] bg-[#F2F4F8] text-left hover:border-[#1D4ED8]/50"
+          >
+            <span class="text-sm font-extrabold text-[#0B1957]">18% Master</span>
+            <span class="text-[11px] font-medium text-slate-500">Lower Comm</span>
+          </button>
+
+          <button
+            type="button"
+            data-rate="0.16"
+            data-name="Legend"
+            onclick="selectCommissionTier(0.16, 'Legend')"
+            class="comm-tier-btn press-effect flex flex-col items-start p-2.5 rounded-xl border border-[#E2E8F0] bg-[#F2F4F8] text-left hover:border-[#1D4ED8]/50"
+          >
+            <span class="text-sm font-extrabold text-[#0B1957]">16% Legend</span>
+            <span class="text-[11px] font-medium text-slate-500">Lower Comm</span>
+          </button>
+
+          <button
+            type="button"
+            data-rate="0.15"
+            data-name="Tagapagmana"
+            onclick="selectCommissionTier(0.15, 'Tagapagmana')"
+            class="comm-tier-btn press-effect flex flex-col items-start p-2.5 rounded-xl border border-[#E2E8F0] bg-[#F2F4F8] text-left hover:border-[#1D4ED8]/50"
+          >
+            <span class="text-sm font-extrabold text-[#0B1957]">15% Tagapagmana</span>
+            <span class="text-[11px] font-medium text-slate-500">Lowest Comm</span>
+          </button>
+        </div>
+      </section>
+
+      <!-- PANEL 3: DRIVER EARNINGS RECEIPT PANEL -->
+      <section class="bg-white rounded-2xl border border-[#E2E8F0] shadow-xs overflow-hidden">
+        <!-- Header: Title on Left, Selected Tier Label on Right (No "Tier 2" badge) -->
+        <div class="bg-[#F8FAFC] border-b border-[#E2E8F0] px-4 py-3 flex items-center justify-between gap-2">
+          <span class="text-xs font-extrabold uppercase tracking-wider text-[#0B1957]">
+            DRIVER EARNINGS RECEIPT
+          </span>
+          <span id="receiptTierLabel" class="text-xs font-extrabold text-[#1D4ED8] bg-blue-50 border border-blue-200/80 px-2.5 py-0.5 rounded-full">
+            20% Kasundo
+          </span>
+        </div>
+
+        <div class="p-4 space-y-3.5">
+          <!-- Highlighted Cash / eCash to Collect Box -->
+          <div class="bg-amber-50/80 border border-[#F59E0B]/40 rounded-xl p-3 text-center">
+            <p class="text-[10px] font-extrabold uppercase tracking-widest text-[#0B1957]">
+              CASH / ECASH TO COLLECT
+            </p>
+            <p id="collectFareDisplay" class="text-2xl font-extrabold text-[#0B1957] mt-0.5">
+              PHP 140.00
+            </p>
+          </div>
+
+          <!-- Receipt Breakdown Lines -->
+          <div class="space-y-2.5 text-sm">
+            <div class="flex justify-between items-center">
+              <span class="text-slate-600 font-medium">Gross Fare (Rounded)</span>
+              <span id="grossFareDisplay" class="font-bold text-[#0B1957]">PHP 140.00</span>
+            </div>
+
+            <div class="flex justify-between items-center">
+              <span id="receiptCommLineLabel" class="text-slate-600 font-medium">
+                Commission from Driver (20% Kasundo)
+              </span>
+              <span id="commissionAmountDisplay" class="font-bold text-red-600">- PHP 28.00</span>
+            </div>
+
+            <div class="border-t border-dashed border-[#E2E8F0] pt-2.5 flex justify-between items-center">
+              <div>
+                <span class="font-extrabold text-[#0B1957] text-sm block">Net App Earnings</span>
+                <span class="text-[11px] text-slate-500">Bago ibawas ang gas</span>
+              </div>
+              <span id="netAppEarningsDisplay" class="text-lg font-extrabold text-[#1D4ED8]">
+                PHP 112.00
+              </span>
+            </div>
+          </div>
+
+          <!-- Minimized / Collapsed by Default Formula Breakdown Toggle -->
+          <div class="pt-1">
+            <button
+              type="button"
+              id="formulaToggleBtn"
+              aria-expanded="false"
+              onclick="toggleFormulaBreakdown()"
+              class="press-effect w-full flex items-center justify-between text-xs font-bold text-[#0B1957] bg-[#F2F4F8] hover:bg-blue-50 border border-[#E2E8F0] px-3.5 py-2.5 rounded-xl"
+            >
+              <span>Paano ito na-compute? (Formula Breakdown)</span>
+              <svg id="formulaChevron" xmlns="http://www.w3.org/2000/svg" class="w-4 h-4 text-[#1D4ED8] transition-transform duration-200" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round">
+                <polyline points="6 9 12 15 18 9" />
+              </svg>
+            </button>
+
+            <div id="formulaBreakdownPanel" class="hidden mt-2 bg-[#F8FAFC] rounded-xl p-3 text-xs text-slate-700 space-y-1.5 border border-[#E2E8F0]">
+              <!-- Populated dynamically by calculateAll() -->
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- PANEL 4: OPTIONAL TIP & GAS PANEL -->
+      <section class="bg-white rounded-2xl p-4 border border-[#E2E8F0] shadow-xs space-y-3">
+        <div class="flex items-center justify-between gap-2">
+          <span class="text-xs font-extrabold uppercase tracking-wider text-[#0B1957]">
+            3. Tip &amp; Gas (Optional)
+          </span>
+          <button
+            type="button"
+            id="autoGasSetupBtn"
+            onclick="toggleAutoGasSetupPanel()"
+            class="text-[11px] font-bold px-2.5 py-1 rounded-lg bg-[#F2F4F8] hover:bg-blue-50 text-[#1D4ED8] border border-[#E2E8F0] transition"
+          >
+            Auto-Gas Setup
+          </button>
+        </div>
+
+        <!-- Collapsible / Toggleable Auto-Gas Setup Box -->
+        <div id="autoGasSetupPanel" class="bg-[#F2F4F8] border border-[#E2E8F0] rounded-xl p-3 space-y-2.5">
+          <div class="flex items-center justify-between gap-2">
+            <div>
+              <span class="text-xs font-bold text-[#0B1957] block">Auto-Estimate Gas per KM</span>
+              <span class="text-[11px] text-slate-500">
+                Estimated cost: <strong id="estimatedGasPerKmText" class="text-[#1D4ED8]">₱1.47 / km</strong>
+              </span>
+            </div>
+            <label class="inline-flex items-center cursor-pointer">
+              <input type="checkbox" id="autoGasToggle" checked onchange="handleAutoGasToggle()" class="sr-only peer" />
+              <div class="w-10 h-5 bg-slate-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-[#1D4ED8] relative"></div>
+            </label>
+          </div>
+
+          <div class="grid grid-cols-2 gap-2.5 pt-1">
+            <div>
+              <label for="gasPriceInput" class="block text-[10px] font-bold text-slate-500 uppercase">
+                Presyo ng Gas (₱/L)
+              </label>
+              <input
+                type="number"
+                id="gasPriceInput"
+                inputmode="decimal"
+                min="0"
+                step="0.1"
+                value="66"
+                oninput="calculateAll()"
+                class="w-full mt-1 text-sm font-bold text-[#0B1957] bg-white border border-[#E2E8F0] focus:border-[#1D4ED8] rounded-lg px-2.5 py-1.5 outline-none"
+              />
+            </div>
+
+            <div>
+              <label for="kmPerLiterInput" class="block text-[10px] font-bold text-slate-500 uppercase">
+                Konsumo (km/L)
+              </label>
+              <input
+                type="number"
+                id="kmPerLiterInput"
+                inputmode="decimal"
+                min="1"
+                step="0.5"
+                value="45"
+                oninput="calculateAll()"
+                class="w-full mt-1 text-sm font-bold text-[#0B1957] bg-white border border-[#E2E8F0] focus:border-[#1D4ED8] rounded-lg px-2.5 py-1.5 outline-none"
+              />
+            </div>
+          </div>
+        </div>
+
+        <!-- Optional Customer Tip & Gas Cost Inputs -->
+        <div class="grid grid-cols-2 gap-3">
+          <div>
+            <label for="tipInput" class="block text-xs font-semibold text-slate-700 mb-1">
+              Customer Tip (₱)
+            </label>
+            <div class="relative">
+              <span class="absolute left-3 top-1/2 -translate-y-1/2 text-xs font-extrabold text-[#1D4ED8]">+₱</span>
+              <input
+                type="number"
+                id="tipInput"
+                inputmode="decimal"
+                min="0"
+                step="1"
+                placeholder="0"
+                oninput="calculateAll()"
+                class="w-full text-base font-bold text-[#0B1957] bg-[#F2F4F8] border border-[#E2E8F0] focus:border-[#1D4ED8] focus:bg-white rounded-xl pl-8 pr-3 py-2.5 outline-none placeholder-slate-400"
+              />
+            </div>
+          </div>
+
+          <div>
+            <label for="gasCostInput" class="block text-xs font-semibold text-slate-700 mb-1">
+              Gas Cost (₱) <span id="gasModeBadge" class="text-[10px] text-[#1D4ED8] font-bold">(Auto)</span>
+            </label>
+            <div class="relative">
+              <span class="absolute left-3 top-1/2 -translate-y-1/2 text-xs font-extrabold text-red-600">-₱</span>
+              <input
+                type="number"
+                id="gasCostInput"
+                inputmode="decimal"
+                min="0"
+                step="0.01"
+                placeholder="0.00"
+                oninput="handleManualGasEdit()"
+                class="w-full text-base font-bold text-[#0B1957] bg-[#F2F4F8] border border-[#E2E8F0] focus:border-[#1D4ED8] focus:bg-white rounded-xl pl-8 pr-3 py-2.5 outline-none placeholder-slate-400"
+              />
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- PANEL 5: PINAKA PROFIT (TAKE-HOME) PANEL -->
+      <section class="bg-white rounded-2xl p-4 border-2 border-[#1D4ED8] shadow-sm space-y-3.5">
+        <div class="flex items-start justify-between gap-2">
+          <div>
+            <span class="text-xs font-extrabold uppercase tracking-wider text-[#1D4ED8] block">
+              PINAKA PROFIT (TAKE-HOME)
+            </span>
+            <span class="text-[11px] text-slate-500 font-medium block mt-0.5">
+              Net App Earnings + Tip - Gas
+            </span>
+          </div>
+          <div class="text-right">
+            <p id="takeHomeProfitDisplay" class="text-3xl font-extrabold text-[#0B1957] tracking-tight">
+              ₱96.75
+            </p>
+            <p id="netProfitPerKmDisplay" class="text-xs font-bold text-[#1D4ED8] mt-0.5">
+              ₱9.30 net / km
+            </p>
+          </div>
+        </div>
+
+        <button
+          type="button"
+          onclick="saveCurrentTrip()"
+          class="press-effect w-full bg-[#0B1957] hover:bg-[#1D4ED8] text-white font-extrabold text-sm py-3.5 rounded-xl shadow-sm flex items-center justify-center gap-2"
+        >
+          <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4 text-[#F59E0B]" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z" />
+            <polyline points="17 21 17 13 7 13 7 21" />
+            <polyline points="7 3 7 8 15 8" />
+          </svg>
+          <span>I-save sa Biyahe Today</span>
+        </button>
+      </section>
+
+      <!-- PANEL 6: JOYRIDE MC TAXI FARE MATRIX GUIDE PANEL -->
+      <section class="bg-white rounded-2xl p-4 border border-[#E2E8F0] shadow-xs space-y-3">
+        <div class="flex items-center justify-between">
+          <h2 class="text-xs font-extrabold uppercase tracking-wider text-[#0B1957]">
+            JoyRide MC Taxi Fare Matrix Guide
+          </h2>
+          <span class="text-[10px] font-bold text-slate-500 uppercase">Whole Peso</span>
+        </div>
+
+        <div class="grid grid-cols-3 gap-2 text-center">
+          <div class="bg-[#F2F4F8] border border-[#E2E8F0] rounded-xl p-2.5 flex flex-col justify-between">
+            <span class="text-[10px] font-extrabold text-slate-500 uppercase">0 - 2.0 KM</span>
+            <span class="text-sm sm:text-base font-extrabold text-[#0B1957] my-1">₱50.00</span>
+            <span class="text-[10px] font-semibold text-[#1D4ED8]">Base Fare</span>
+          </div>
+
+          <div class="bg-[#F2F4F8] border border-[#E2E8F0] rounded-xl p-2.5 flex flex-col justify-between">
+            <span class="text-[10px] font-extrabold text-slate-500 uppercase">2.1 - 8.0 KM</span>
+            <span class="text-sm sm:text-base font-extrabold text-[#0B1957] my-1">₱9.00 / km</span>
+            <span class="text-[10px] font-semibold text-[#1D4ED8]">Max ₱104 @ 8km</span>
+          </div>
+
+          <div class="bg-[#F2F4F8] border border-[#E2E8F0] rounded-xl p-2.5 flex flex-col justify-between">
+            <span class="text-[10px] font-extrabold text-slate-500 uppercase">ABOVE 8.0 KM</span>
+            <span class="text-sm sm:text-base font-extrabold text-[#0B1957] my-1">₱15.00 / km</span>
+            <span class="text-[10px] font-semibold text-[#1D4ED8]">Succeeding</span>
+          </div>
+        </div>
+      </section>
+
+    </main>
+
+    <!-- ========================================================= -->
+    <!-- TAB 2: BIYAHE TODAY VIEW (4 SUMMARY CARDS + TRIP LIST)    -->
+    <!-- ========================================================= -->
+    <main id="logView" class="p-4 space-y-4 flex-1 hidden">
+
+      <!-- 4 Summary Cards at Top -->
+      <section class="bg-white rounded-2xl p-4 border border-[#E2E8F0] shadow-xs space-y-3.5">
+        <div class="flex items-center justify-between border-b border-[#E2E8F0] pb-3">
+          <div>
+            <h2 class="text-xs font-extrabold uppercase tracking-wider text-[#0B1957]">
+              Biyahe Today Summary
+            </h2>
+            <p id="todayDateText" class="text-[11px] text-slate-500 mt-0.5"></p>
+          </div>
+          <button
+            type="button"
+            onclick="showClearAllConfirm()"
+            class="press-effect text-xs font-bold bg-[#F2F4F8] hover:bg-red-50 text-red-600 border border-[#E2E8F0] px-3 py-1.5 rounded-xl"
+          >
+            Clear All
+          </button>
+        </div>
+
+        <div class="grid grid-cols-2 gap-2.5">
+          <!-- 1. Total Take-Home Profit -->
+          <div class="bg-[#0B1957] rounded-xl p-3 border border-[#1D4ED8]/30">
+            <p class="text-[10px] font-bold uppercase tracking-wider text-blue-200">
+              Total Take-Home Profit
+            </p>
+            <p id="summaryTakeHome" class="text-lg font-extrabold text-white mt-1">
+              ₱0.00
+            </p>
+          </div>
+
+          <!-- 2. Total Distance Natakbo -->
+          <div class="bg-[#F2F4F8] rounded-xl p-3 border border-[#E2E8F0]">
+            <p class="text-[10px] font-bold uppercase tracking-wider text-slate-500">
+              Total Distance Natakbo
+            </p>
+            <p id="summaryDistance" class="text-lg font-extrabold text-[#0B1957] mt-1">
+              0.0 km
+            </p>
+          </div>
+
+          <!-- 3. Total Gas Used -->
+          <div class="bg-[#F2F4F8] rounded-xl p-3 border border-[#E2E8F0]">
+            <p class="text-[10px] font-bold uppercase tracking-wider text-slate-500">
+              Total Gas Used
+            </p>
+            <p id="summaryGasUsed" class="text-lg font-extrabold text-red-600 mt-1">
+              ₱0.00
+            </p>
+          </div>
+
+          <!-- 4. Total Tips -->
+          <div class="bg-amber-50/80 rounded-xl p-3 border border-[#F59E0B]/40">
+            <p class="text-[10px] font-bold uppercase tracking-wider text-amber-800">
+              Total Tips
+            </p>
+            <p id="summaryTipsTotal" class="text-lg font-extrabold text-[#0B1957] mt-1">
+              ₱0.00
+            </p>
+          </div>
+        </div>
+      </section>
+
+      <!-- Inline Clear Confirmation Banner -->
+      <div id="clearConfirmBanner" class="hidden bg-white border-2 border-[#1D4ED8] rounded-2xl p-3.5 flex items-center justify-between gap-2 shadow-sm">
+        <p class="text-xs font-bold text-[#0B1957]">Burahin lahat ng naka-save na biyahe?</p>
+        <div class="flex gap-2 shrink-0">
+          <button
+            type="button"
+            onclick="hideClearAllConfirm()"
+            class="text-xs font-bold px-3 py-1.5 rounded-lg bg-[#F2F4F8] text-slate-700 border border-[#E2E8F0]"
+          >
+            Hindi
+          </button>
+          <button
+            type="button"
+            onclick="confirmClearAllTrips()"
+            class="text-xs font-bold px-3 py-1.5 rounded-lg bg-[#1D4ED8] text-white"
+          >
+            Oo, Burahin
+          </button>
+        </div>
+      </div>
+
+      <!-- Saved Trips List -->
+      <section class="bg-white rounded-2xl p-4 border border-[#E2E8F0] shadow-xs space-y-3">
+        <div class="flex items-center justify-between">
+          <h3 class="text-xs font-extrabold uppercase tracking-wider text-[#0B1957]">
+            Listahan ng Biyahe
+          </h3>
+          <span id="tripCountLabel" class="text-[11px] font-semibold text-slate-500">0 trips</span>
+        </div>
+
+        <div id="tripListContainer" class="space-y-2.5">
+          <!-- Populated dynamically via renderTrips() -->
+        </div>
+      </section>
+
+    </main>
+
+    <!-- ========================================================= -->
+    <!-- FIXED BOTTOM NAVIGATION BAR                               -->
+    <!-- ========================================================= -->
+    <nav class="fixed bottom-0 w-full max-w-md bg-white border-t border-[#E2E8F0] px-6 py-2.5 flex justify-around items-center z-30 shadow-lg">
+      <button
+        type="button"
+        id="bottomNavCalc"
+        onclick="switchTab('calc')"
+        class="flex flex-col items-center gap-0.5 text-[#0B1957] font-bold"
+      >
+        <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round">
+          <rect x="4" y="2" width="16" height="20" rx="2" />
+          <line x1="8" y1="6" x2="16" y2="6" />
+          <line x1="16" y1="14" x2="16" y2="18" />
+          <path d="M16 10h.01" />
+          <path d="M12 10h.01" />
+          <path d="M8 10h.01" />
+          <path d="M12 14h.01" />
+          <path d="M8 14h.01" />
+          <path d="M12 18h.01" />
+          <path d="M8 18h.01" />
+        </svg>
+        <span class="text-[11px]">Calculator</span>
+      </button>
+
+      <button
+        type="button"
+        id="bottomNavLog"
+        onclick="switchTab('log')"
+        class="relative flex flex-col items-center gap-0.5 text-slate-500 font-semibold"
+      >
+        <div class="relative">
+          <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+            <line x1="8" y1="6" x2="21" y2="6" />
+            <line x1="8" y1="12" x2="21" y2="12" />
+            <line x1="8" y1="18" x2="21" y2="18" />
+            <line x1="3" y1="6" x2="3.01" y2="6" />
+            <line x1="3" y1="12" x2="3.01" y2="12" />
+            <line x1="3" y1="18" x2="3.01" y2="18" />
+          </svg>
+          <span id="bottomTripBadge" class="hidden absolute -top-1.5 -right-3 bg-[#1D4ED8] text-white text-[9px] font-extrabold px-1.5 py-0.5 rounded-full leading-none">
+            0
+          </span>
+        </div>
+        <span class="text-[11px]">Biyahe Today</span>
+      </button>
+    </nav>
+
+    <!-- ========================================================= -->
+    <!-- INSTALL APP MODAL (JOYRIDECALC ANDROID / PWA GUIDE)       -->
+    <!-- ========================================================= -->
+    <div id="installModal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-xs z-50 hidden flex items-end sm:items-center justify-center p-0 sm:p-4">
+      <div class="bg-white border border-[#E2E8F0] w-full max-w-md rounded-t-3xl sm:rounded-3xl p-5 shadow-2xl max-h-[88vh] overflow-y-auto space-y-4 text-slate-800">
+        <div class="flex items-center justify-between border-b border-[#E2E8F0] pb-3">
+          <div class="flex items-center gap-2.5">
+            <span class="w-8 h-8 rounded-xl bg-[#0B1957] text-[#F59E0B] flex items-center justify-center font-extrabold text-xs">
+              JR
+            </span>
+            <div>
+              <h3 class="font-extrabold text-base text-[#0B1957] leading-tight">Install JoyRideCalc</h3>
+              <p class="text-[11px] text-slate-500">JoyRide Fare Calculator • by XioMarley</p>
+            </div>
+          </div>
+          <button
+            type="button"
+            onclick="toggleModal('installModal', false)"
+            class="w-8 h-8 rounded-full bg-[#F2F4F8] text-slate-600 hover:text-[#0B1957] flex items-center justify-center font-bold"
+          >
+            ✕
+          </button>
+        </div>
+
+        <div class="space-y-3 text-xs text-slate-600 leading-relaxed">
+          <div class="bg-[#F2F4F8] border border-[#E2E8F0] rounded-2xl p-3.5">
+            <p class="font-extrabold text-[#0B1957] text-sm mb-1.5">Android Home Screen (Google Chrome)</p>
+            <ol class="list-decimal list-inside space-y-1">
+              <li>Buksan ang pahinang ito sa <strong class="text-[#0B1957]">Google Chrome</strong> sa Android phone mo.</li>
+              <li>Pindutin ang <strong class="text-[#0B1957]">3 dots (⋮)</strong> sa kanang itaas.</li>
+              <li>Piliin ang <strong class="text-[#1D4ED8]">"Add to Home screen"</strong> o <strong class="text-[#1D4ED8]">"Install app"</strong>.</li>
+              <li>Maglalagay ito ng shortcut na pinangalanang <strong class="text-[#0B1957]">JoyRideCalc</strong> sa Home Screen mo.</li>
+            </ol>
+          </div>
+
+          <div class="bg-blue-50/70 border border-blue-200/80 rounded-2xl p-3.5">
+            <p class="font-extrabold text-[#0B1957] text-sm mb-1">PWA &amp; Offline Support</p>
+            <p>
+              Awtomatikong naka-configure ang app manifest bilang <strong class="text-[#0B1957]">JoyRideCalc</strong> at naka-save sa browser storage (<code class="bg-white px-1 py-0.5 rounded border border-blue-200 text-[#1D4ED8]">localStorage</code>) ang mga naka-save mong biyahe.
+            </p>
+          </div>
+        </div>
+
+        <button
+          type="button"
+          onclick="toggleModal('installModal', false)"
+          class="press-effect w-full bg-[#0B1957] hover:bg-[#1D4ED8] text-white font-bold text-sm py-3 rounded-xl"
+        >
+          Salamat, Isara
+        </button>
+      </div>
+    </div>
+
+  </div>
+
+  <script>
+    // =========================================================
+    // FARE MATRIX CONSTANTS & COMMISSION TIERS
+    // =========================================================
+    const FARE_RULES = {
+      BASE_KM: 2.0,          // First 2.0 km
+      BASE_FARE: 50.0,       // ₱50.00
+      TIER1_MAX_KM: 8.0,     // Up to 8.0 km
+      TIER1_RATE: 9.0,       // ₱9.00 / km for 2.1 to 8.0 km (max 6.0 km -> ₱54.00)
+      TIER2_RATE: 15.0,      // ₱15.00 / km above 8.0 km
+      DEFAULT_RATE: 0.20,
+      DEFAULT_TIER: 'Kasundo'
+    };
+
+    const TRIPS_STORAGE_KEY = 'joyridecalc_biyahe_today_v1';
+
+    let activeCommission = {
+      rate: FARE_RULES.DEFAULT_RATE,
+      name: FARE_RULES.DEFAULT_TIER
+    };
+
+    let latestComputation = null;
+
+    // =========================================================
+    // DYNAMIC PWA MANIFEST FOR "JoyRideCalc"
+    // =========================================================
+    function registerDynamicManifest() {
+      // Static manifest is required for reliable Android installation.
+      if ('serviceWorker' in navigator) {
+        window.addEventListener('load', () => {
+          navigator.serviceWorker.register('./sw.js').catch(err => {
+            console.warn('Service worker registration failed:', err);
+          });
+        });
+      }
+    }
+
+    // =========================================================
+    // FORMATTING HELPERS
+    // =========================================================
+    function formatPeso(val) {
+      const amount = Number(val) || 0;
+      return `₱${amount.toLocaleString('en-PH', {
+        minimumFractionDigits: 2,
+        maximumFractionDigits: 2
+      })}`;
+    }
+
+    function formatPHPText(val) {
+      const amount = Number(val) || 0;
+      return `PHP ${amount.toLocaleString('en-PH', {
+        minimumFractionDigits: 2,
+        maximumFractionDigits: 2
+      })}`;
+    }
+
+    // =========================================================
+    // COMMISSION TIER SELECTION & LIVE RECALCULATION
+    // =========================================================
+    function selectCommissionTier(rate, name) {
+      activeCommission = {
+        rate: Number(rate),
+        name: String(name)
+      };
+      updateCommissionTierButtons();
+      calculateAll();
+      renderTrips();
+    }
+
+    function updateCommissionTierButtons() {
+      const pct = Math.round(activeCommission.rate * 100);
+      const labelText = `${pct}% ${activeCommission.name}`;
+
+      document.getElementById('activeTierPill').textContent = labelText;
+      document.getElementById('receiptTierLabel').textContent = labelText;
+      document.getElementById('receiptCommLineLabel').textContent = `Commission from Driver (${labelText})`;
+
+      const buttons = document.querySelectorAll('.comm-tier-btn');
+      buttons.forEach(btn => {
+        const btnRate = Number(btn.getAttribute('data-rate'));
+        const isSelected = Math.abs(btnRate - activeCommission.rate) < 0.0001;
+        const subLabel = btn.querySelector('span:last-child');
+
+        if (isSelected) {
+          btn.className = 'comm-tier-btn press-effect flex flex-col items-start p-2.5 rounded-xl border-2 border-[#1D4ED8] bg-blue-50/80 text-left';
+          if (subLabel) {
+            subLabel.className = 'text-[11px] font-bold text-[#1D4ED8]';
+          }
+        } else {
+          btn.className = 'comm-tier-btn press-effect flex flex-col items-start p-2.5 rounded-xl border border-[#E2E8F0] bg-[#F2F4F8] text-left hover:border-[#1D4ED8]/50';
+          if (subLabel) {
+            subLabel.className = 'text-[11px] font-medium text-slate-500';
+          }
+        }
+      });
+    }
+
+    // =========================================================
+    // CORE FARE & EARNINGS ENGINE
+    // =========================================================
+    function calculateFareAndProfit(distanceInput, tipInput, gasInput, commRate = activeCommission.rate, commName = activeCommission.name) {
+      const dist = Math.max(0, parseFloat(distanceInput) || 0);
+      const tip = Math.max(0, parseFloat(tipInput) || 0);
+      const gas = Math.max(0, parseFloat(gasInput) || 0);
+      const rate = Math.max(0, Number(commRate) || 0);
+
+      let baseFare = 0;
+      let tier1Km = 0;
+      let tier1Fare = 0;
+      let tier2Km = 0;
+      let tier2Fare = 0;
+      let rawFare = 0;
+
+      if (dist > 0) {
+        baseFare = FARE_RULES.BASE_FARE;
+        if (dist <= FARE_RULES.BASE_KM) {
+          rawFare = baseFare;
+        } else if (dist <= FARE_RULES.TIER1_MAX_KM) {
+          tier1Km = +(dist - FARE_RULES.BASE_KM).toFixed(2);
+          tier1Fare = +(tier1Km * FARE_RULES.TIER1_RATE).toFixed(2);
+          rawFare = +(baseFare + tier1Fare).toFixed(2);
+        } else {
+          tier1Km = +(FARE_RULES.TIER1_MAX_KM - FARE_RULES.BASE_KM).toFixed(2); // 6.0 km
+          tier1Fare = +(tier1Km * FARE_RULES.TIER1_RATE).toFixed(2);             // ₱54.00
+          tier2Km = +(dist - FARE_RULES.TIER1_MAX_KM).toFixed(2);
+          tier2Fare = +(tier2Km * FARE_RULES.TIER2_RATE).toFixed(2);
+          rawFare = +(baseFare + tier1Fare + tier2Fare).toFixed(2);
+        }
+      }
+
+      // Whole-peso rounding (.50 and above rounds up, < .50 rounds down)
+      const roundedGrossFare = dist > 0 ? Math.round(rawFare) : 0;
+
+      // Commission applies to rounded gross fare
+      const commission = +(roundedGrossFare * rate).toFixed(2);
+
+      // Net App Earnings (before gas & tip)
+      const netAppEarnings = +(roundedGrossFare - commission).toFixed(2);
+
+      // Final Take-Home Profit = Net App Earnings + Tip - Gas
+      const takeHomeProfit = +(netAppEarnings + tip - gas).toFixed(2);
+
+      // Net profit per km
+      const profitPerKm = dist > 0 ? +(takeHomeProfit / dist).toFixed(2) : 0;
+
+      return {
+        dist,
+        baseFare,
+        tier1Km,
+        tier1Fare,
+        tier2Km,
+        tier2Fare,
+        rawFare,
+        roundedGrossFare,
+        commissionRate: rate,
+        commissionName: commName,
+        commission,
+        netAppEarnings,
+        tip,
+        gas,
+        takeHomeProfit,
+        profitPerKm
+      };
+    }
+
+    function calculateAll() {
+      const distRaw = document.getElementById('distanceInput').value;
+      const tipRaw = document.getElementById('tipInput').value;
+      const autoGasChecked = document.getElementById('autoGasToggle').checked;
+
+      const gasPrice = Math.max(0, parseFloat(document.getElementById('gasPriceInput').value) || 0);
+      const kmPerLiter = Math.max(0.1, parseFloat(document.getElementById('kmPerLiterInput').value) || 45);
+      const costPerKm = gasPrice / kmPerLiter;
+
+      document.getElementById('estimatedGasPerKmText').textContent = `₱${costPerKm.toFixed(2)} / km`;
+
+      if (autoGasChecked) {
+        const distNum = Math.max(0, parseFloat(distRaw) || 0);
+        const estimatedGas = +(distNum * costPerKm).toFixed(2);
+        document.getElementById('gasCostInput').value = distNum > 0 ? estimatedGas.toFixed(2) : '';
+      }
+
+      const gasRaw = document.getElementById('gasCostInput').value;
+      const calc = calculateFareAndProfit(
+        distRaw,
+        tipRaw,
+        gasRaw,
+        activeCommission.rate,
+        activeCommission.name
+      );
+      latestComputation = calc;
+
+      // Update Driver Earnings Receipt Panel
+      document.getElementById('collectFareDisplay').textContent = formatPHPText(calc.roundedGrossFare);
+      document.getElementById('grossFareDisplay').textContent = formatPHPText(calc.roundedGrossFare);
+      document.getElementById('commissionAmountDisplay').textContent = `- ${formatPHPText(calc.commission)}`;
+      document.getElementById('netAppEarningsDisplay').textContent = formatPHPText(calc.netAppEarnings);
+
+      // Update Formula Breakdown Panel content
+      renderFormulaBreakdownContent(calc);
+
+      // Update Pinaka Profit (Take-Home) Panel
+      document.getElementById('takeHomeProfitDisplay').textContent = formatPeso(calc.takeHomeProfit);
+      document.getElementById('netProfitPerKmDisplay').textContent =
+        calc.dist > 0 ? `₱${calc.profitPerKm.toFixed(2)} net / km` : 'Ilagay ang distansya';
+    }
+
+    function renderFormulaBreakdownContent(calc) {
+      const container = document.getElementById('formulaBreakdownPanel');
+      if (calc.dist <= 0) {
+        container.innerHTML = `<p class="text-slate-500 italic">Maglagay ng distansya sa km upang makita ang detalyadong computation.</p>`;
+        return;
+      }
+
+      const pct = Math.round((calc.commissionRate || 0) * 100);
+      const frac = Number(calc.commissionRate || 0).toFixed(2);
+      const fractionalPart = +(calc.rawFare - Math.floor(calc.rawFare)).toFixed(2);
+      const roundRuleNote =
+        fractionalPart === 0
+          ? 'Exact whole peso'
+          : fractionalPart >= 0.5
+            ? `Cents .50+ (${fractionalPart.toFixed(2)}) → rounded up`
+            : `Cents < .50 (${fractionalPart.toFixed(2)}) → rounded down`;
+
+      const rows = [
+        `<div class="flex justify-between"><span>• Base Fare (first 2.0 km):</span><span class="font-bold text-[#0B1957]">₱${calc.baseFare.toFixed(2)}</span></div>`
+      ];
+
+      if (calc.tier1Km > 0) {
+        rows.push(
+          `<div class="flex justify-between"><span>• Tier 1 (${calc.tier1Km.toFixed(2)} km × ₱9.00/km, max ₱54.00):</span><span class="font-bold text-[#0B1957]">₱${calc.tier1Fare.toFixed(2)}</span></div>`
+        );
+      }
+
+      if (calc.tier2Km > 0) {
+        rows.push(
+          `<div class="flex justify-between"><span>• Tier 2 (${calc.tier2Km.toFixed(2)} km × ₱15.00/km):</span><span class="font-bold text-[#0B1957]">₱${calc.tier2Fare.toFixed(2)}</span></div>`
+        );
+      }
+
+      rows.push(
+        `<div class="border-t border-[#E2E8F0] pt-1.5 flex justify-between font-bold text-[#0B1957]">
+          <span>Raw Total → Whole-Peso Rounded:</span>
+          <span>₱${calc.rawFare.toFixed(2)} → ₱${calc.roundedGrossFare}.00</span>
+        </div>`,
+        `<p class="text-[11px] text-slate-500">Rounding rule: ${roundRuleNote} (nearest whole peso).</p>`,
+        `<div class="flex justify-between text-red-600 pt-0.5">
+          <span>• Commission (${pct}% ${calc.commissionName}: ₱${calc.roundedGrossFare} × ${frac}):</span>
+          <span class="font-bold">-₱${calc.commission.toFixed(2)}</span>
+        </div>`,
+        `<div class="flex justify-between text-[#1D4ED8] font-semibold">
+          <span>• Net App Earnings (before gas):</span>
+          <span>₱${calc.netAppEarnings.toFixed(2)}</span>
+        </div>`
+      );
+
+      if (calc.tip > 0) {
+        rows.push(
+          `<div class="flex justify-between text-amber-700 font-semibold">
+            <span>• Customer Tip:</span>
+            <span>+₱${calc.tip.toFixed(2)}</span>
+          </div>`
+        );
+      }
+
+      if (calc.gas > 0) {
+        rows.push(
+          `<div class="flex justify-between text-slate-700">
+            <span>• Gas Deduction:</span>
+            <span class="font-bold text-red-600">-₱${calc.gas.toFixed(2)}</span>
+          </div>`
+        );
+      }
+
+      container.innerHTML = rows.join('');
+    }
+
+    // =========================================================
+    // INPUT & PANEL CONTROLS
+    // =========================================================
+    function resetDistanceAndInputs() {
+      document.getElementById('distanceInput').value = '';
+      document.getElementById('tipInput').value = '';
+      document.getElementById('gasCostInput').value = '';
+      calculateAll();
+    }
+
+    function toggleFormulaBreakdown() {
+      const panel = document.getElementById('formulaBreakdownPanel');
+      const chevron = document.getElementById('formulaChevron');
+      const btn = document.getElementById('formulaToggleBtn');
+      const isHidden = panel.classList.toggle('hidden');
+      btn.setAttribute('aria-expanded', String(!isHidden));
+      chevron.classList.toggle('rotate-180', !isHidden);
+    }
+
+    function toggleAutoGasSetupPanel() {
+      const panel = document.getElementById('autoGasSetupPanel');
+      panel.classList.toggle('hidden');
+    }
+
+    function handleAutoGasToggle() {
+      const isAuto = document.getElementById('autoGasToggle').checked;
+      const badge = document.getElementById('gasModeBadge');
+      if (isAuto) {
+        badge.classList.remove('hidden');
+      } else {
+        badge.classList.add('hidden');
+      }
+      calculateAll();
+    }
+
+    function handleManualGasEdit() {
+      const toggle = document.getElementById('autoGasToggle');
+      if (toggle.checked) {
+        toggle.checked = false;
+        document.getElementById('gasModeBadge').classList.add('hidden');
+      }
+      calculateAll();
+    }
+
+    // =========================================================
+    // BIYAHE TODAY STORAGE & SUMMARY
+    // =========================================================
+    function loadSavedTrips() {
+      try {
+        const raw = localStorage.getItem(TRIPS_STORAGE_KEY);
+        const parsed = raw ? JSON.parse(raw) : [];
+        return Array.isArray(parsed) ? parsed : [];
+      } catch (err) {
+        return [];
+      }
+    }
+
+    function persistTrips(trips) {
+      try {
+        localStorage.setItem(TRIPS_STORAGE_KEY, JSON.stringify(trips));
+      } catch (err) {
+        showToast('Hindi ma-save sa device storage.');
+      }
+    }
+
+    function saveCurrentTrip() {
+      if (!latestComputation || latestComputation.dist <= 0) {
+        showToast('Ilagay muna ang distansya ng biyahe (km).');
+        return;
+      }
+
+      const trips = loadSavedTrips();
+      const timeLabel = new Date().toLocaleTimeString('en-PH', {
+        hour: 'numeric',
+        minute: '2-digit'
+      });
+
+      const entry = {
+        id: Date.now() + Math.floor(Math.random() * 1000),
+        time: timeLabel,
+        dist: latestComputation.dist,
+        tip: latestComputation.tip,
+        gas: latestComputation.gas
+      };
+
+      trips.unshift(entry);
+      persistTrips(trips);
+      renderTrips();
+      showToast(`Na-save: ${entry.dist.toFixed(1)} km • Profit ${formatPeso(latestComputation.takeHomeProfit)}`);
+    }
+
+    function deleteTripById(tripId) {
+      const updated = loadSavedTrips().filter(item => item.id !== tripId);
+      persistTrips(updated);
+      renderTrips();
+      showToast('Natanggal ang biyahe.');
+    }
+
+    function showClearAllConfirm() {
+      if (loadSavedTrips().length === 0) return;
+      document.getElementById('clearConfirmBanner').classList.remove('hidden');
+    }
+
+    function hideClearAllConfirm() {
+      document.getElementById('clearConfirmBanner').classList.add('hidden');
+    }
+
+    function confirmClearAllTrips() {
+      persistTrips([]);
+      hideClearAllConfirm();
+      renderTrips();
+      showToast('Nabura na ang lahat ng biyahe.');
+    }
+
+    function renderTrips() {
+      const rawTrips = loadSavedTrips();
+      const count = rawTrips.length;
+
+      document.getElementById('topTripBadge').textContent = count;
+      document.getElementById('tripCountLabel').textContent = `${count} ${count === 1 ? 'trip' : 'trips'}`;
+
+      const bottomBadge = document.getElementById('bottomTripBadge');
+      if (count > 0) {
+        bottomBadge.textContent = count;
+        bottomBadge.classList.remove('hidden');
+      } else {
+        bottomBadge.classList.add('hidden');
+      }
+
+      let totalTakeHome = 0;
+      let totalDistance = 0;
+      let totalGas = 0;
+      let totalTips = 0;
+
+      const computedTrips = rawTrips.map(trip => {
+        const res = calculateFareAndProfit(
+          trip.dist,
+          trip.tip || 0,
+          trip.gas || 0,
+          activeCommission.rate,
+          activeCommission.name
+        );
+        totalTakeHome += res.takeHomeProfit;
+        totalDistance += res.dist;
+        totalGas += res.gas;
+        totalTips += res.tip;
+        return {
+          ...trip,
+          ...res
+        };
+      });
+
+      document.getElementById('summaryTakeHome').textContent = formatPeso(totalTakeHome);
+      document.getElementById('summaryDistance').textContent = `${totalDistance.toFixed(1)} km`;
+      document.getElementById('summaryGasUsed').textContent = formatPeso(totalGas);
+      document.getElementById('summaryTipsTotal').textContent = formatPeso(totalTips);
+
+      const listEl = document.getElementById('tripListContainer');
+      if (computedTrips.length === 0) {
+        listEl.innerHTML = `
+          <div class="bg-[#F2F4F8] border border-[#E2E8F0] rounded-2xl p-6 text-center">
+            <p class="text-sm font-bold text-[#0B1957]">Wala pang naka-save na biyahe</p>
+            <p class="text-xs text-slate-500 mt-1">
+              Pindutin ang <strong class="text-[#1D4ED8]">"I-save sa Biyahe Today"</strong> sa Calculator tab para mag-record ng biyahe.
+            </p>
+          </div>
+        `;
+        return;
+      }
+
+      listEl.innerHTML = computedTrips
+        .map((item, idx) => `
+          <div class="bg-[#F2F4F8] border border-[#E2E8F0] rounded-2xl p-3.5 flex items-center justify-between gap-2">
+            <div class="space-y-1 min-w-0">
+              <div class="flex items-center gap-2 flex-wrap">
+                <span class="text-[11px] font-extrabold bg-[#0B1957] text-white px-2 py-0.5 rounded-md">
+                  #${computedTrips.length - idx}
+                </span>
+                <span class="text-sm font-extrabold text-[#0B1957]">${item.dist.toFixed(1)} km</span>
+                <span class="text-[11px] text-slate-500">• ${item.time || ''}</span>
+              </div>
+              <div class="text-[11px] text-slate-600 flex flex-wrap gap-x-2.5 gap-y-0.5">
+                <span>Fare: <strong class="text-[#0B1957]">₱${item.roundedGrossFare.toFixed(0)}</strong></span>
+                <span>Comm (${Math.round(item.commissionRate * 100)}%): <strong class="text-red-600">-₱${item.commission.toFixed(2)}</strong></span>
+                <span>Tip: <strong class="text-amber-700">+₱${item.tip.toFixed(0)}</strong></span>
+                <span>Gas: <strong class="text-slate-700">-₱${item.gas.toFixed(2)}</strong></span>
+              </div>
+            </div>
+
+            <div class="flex items-center gap-2 shrink-0">
+              <div class="text-right">
+                <span class="text-[10px] font-bold uppercase text-slate-500 block">Take-Home</span>
+                <span class="text-base font-extrabold text-[#1D4ED8]">${formatPeso(item.takeHomeProfit)}</span>
+              </div>
+              <button
+                type="button"
+                onclick="deleteTripById(${item.id})"
+                aria-label="Burahin ang biyahe"
+                class="press-effect w-8 h-8 rounded-xl bg-white hover:bg-red-50 text-slate-400 hover:text-red-600 border border-[#E2E8F0] flex items-center justify-center"
+              >
+                <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                  <polyline points="3 6 5 6 21 6" />
+                  <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2" />
+                </svg>
+              </button>
+            </div>
+          </div>
+        `)
+        .join('');
+    }
+
+    // =========================================================
+    // NAVIGATION, MODAL & TOAST HELPERS
+    // =========================================================
+    function switchTab(tabName) {
+      const calcView = document.getElementById('calcView');
+      const logView = document.getElementById('logView');
+      const topTabCalc = document.getElementById('topTabCalc');
+      const topTabLog = document.getElementById('topTabLog');
+      const bottomNavCalc = document.getElementById('bottomNavCalc');
+      const bottomNavLog = document.getElementById('bottomNavLog');
+
+      if (tabName === 'calc') {
+        calcView.classList.remove('hidden');
+        logView.classList.add('hidden');
+
+        topTabCalc.className = 'press-effect py-2 text-xs font-bold rounded-xl bg-[#0B1957] text-white shadow-xs transition';
+        topTabLog.className = 'press-effect py-2 text-xs font-bold rounded-xl bg-[#F2F4F8] text-slate-600 border border-[#E2E8F0] hover:text-[#0B1957] transition flex items-center justify-center gap-1.5';
+
+        bottomNavCalc.className = 'flex flex-col items-center gap-0.5 text-[#0B1957] font-bold';
+        bottomNavLog.className = 'relative flex flex-col items-center gap-0.5 text-slate-500 font-semibold';
+      } else {
+        calcView.classList.add('hidden');
+        logView.classList.remove('hidden');
+
+        topTabLog.className = 'press-effect py-2 text-xs font-bold rounded-xl bg-[#0B1957] text-white shadow-xs transition flex items-center justify-center gap-1.5';
+        topTabCalc.className = 'press-effect py-2 text-xs font-bold rounded-xl bg-[#F2F4F8] text-slate-600 border border-[#E2E8F0] hover:text-[#0B1957] transition';
+
+        bottomNavLog.className = 'relative flex flex-col items-center gap-0.5 text-[#0B1957] font-bold';
+        bottomNavCalc.className = 'flex flex-col items-center gap-0.5 text-slate-500 font-semibold';
+
+        renderTrips();
+      }
+    }
+
+    function toggleModal(modalId, open) {
+      const modal = document.getElementById(modalId);
+      if (!modal) return;
+      if (open) {
+        modal.classList.remove('hidden');
+      } else {
+        modal.classList.add('hidden');
+      }
+    }
+
+    let toastTimer = null;
+    function showToast(message) {
+      const banner = document.getElementById('toastBanner');
+      document.getElementById('toastText').textContent = message;
+      banner.classList.remove('hidden');
+      if (toastTimer) clearTimeout(toastTimer);
+      toastTimer = setTimeout(() => {
+        banner.classList.add('hidden');
+      }, 2400);
+    }
+
+    // =========================================================
+    // INITIALIZATION
+    // =========================================================
+    window.addEventListener('DOMContentLoaded', () => {
+      registerDynamicManifest();
+
+      document.getElementById('todayDateText').textContent = new Date().toLocaleDateString('en-PH', {
+        weekday: 'long',
+        month: 'short',
+        day: 'numeric',
+        year: 'numeric'
+      });
+
+      updateCommissionTierButtons();
+      calculateAll();
+      renderTrips();
+    });
+  </script>
+</body>
+</html>
