@@ -1,0 +1,430 @@
+```html
+<!DOCTYPE html>
+<html lang="tl">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <meta name="theme-color" content="#0B1957" />
+  <meta name="application-name" content="JoyRideCalc" />
+  <meta name="apple-mobile-web-app-title" content="JoyRideCalc" />
+  <meta name="mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="default" />
+  <title>JoyRideCalc — JoyRide Fare Calculator</title>
+
+  <!-- Dynamic SVG Favicon: JoyRide-inspired Emblem + Calculator Badge -->
+  <link
+    id="dynamicFavicon"
+    rel="icon"
+    type="image/svg+xml"
+    href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='16' fill='%230B1957'/%3E%3Ccircle cx='20' cy='43' r='7' fill='none' stroke='%23FFFFFF' stroke-width='3.5'/%3E%3Ccircle cx='42' cy='43' r='7' fill='none' stroke='%23FFFFFF' stroke-width='3.5'/%3E%3Cpath d='M14 23h7l5 12h14l5-9' fill='none' stroke='%2360A5FA' stroke-width='3.5' stroke-linecap='round' stroke-linejoin='round'/%3E%3Crect x='38' y='8' width='18' height='20' rx='4' fill='%23F59E0B' stroke='%230B1957' stroke-width='2'/%3E%3Cpath d='M42 13h10M42 18h4M50 18h2M42 23h10' stroke='%230B1957' stroke-width='2' stroke-linecap='round'/%3E%3C/svg%3E"
+  />
+
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          fontFamily: {
+            sans: ['Inter', '-apple-system', 'BlinkMacSystemFont', 'sans-serif']
+          },
+          colors: {
+            jrNavy: '#0B1957',
+            jrBlue: '#1D4ED8',
+            jrAmber: '#F59E0B',
+            jrSurface: '#F2F4F8',
+            jrCard: '#FFFFFF',
+            jrBorder: '#E2E8F0'
+          }
+        }
+      }
+    };
+  </script>
+
+  <style>
+    * {
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    body {
+      background-color: #E6EAF2;
+      color: #0F172A;
+      overscroll-behavior-y: contain;
+    }
+
+    ::-webkit-scrollbar {
+      width: 4px;
+      height: 4px;
+    }
+
+    ::-webkit-scrollbar-thumb {
+      background: #CBD5E1;
+      border-radius: 9999px;
+    }
+
+    input[type="number"]::-webkit-inner-spin-button,
+    input[type="number"]::-webkit-outer-spin-button {
+      -webkit-appearance: none;
+      margin: 0;
+    }
+
+    input[type="number"] {
+      -moz-appearance: textfield;
+    }
+
+    .press-effect {
+      transition: transform 0.1s ease, background-color 0.15s ease, border-color 0.15s ease, box-shadow 0.15s ease;
+    }
+
+    .press-effect:active {
+      transform: scale(0.98);
+    }
+  </style>
+</head>
+<body class="min-h-screen flex justify-center bg-[#E6EAF2] text-slate-900">
+
+  <!-- Main Responsive Mobile-First App Container -->
+  <div class="w-full max-w-md min-h-screen bg-[#F2F4F8] border-x border-[#E2E8F0] shadow-2xl flex flex-col relative pb-24">
+
+    <!-- ========================================================= -->
+    <!-- TOP HEADER BAR & MODE SWITCHER TABS                       -->
+    <!-- ========================================================= -->
+    <header class="bg-white sticky top-0 z-30 border-b border-[#E2E8F0] shadow-xs">
+      <!-- Top Bar -->
+      <div class="px-4 pt-3.5 pb-3 flex items-center justify-between gap-2.5">
+        <!-- Left: JoyRide-inspired Motorcycle Emblem + Calculator Badge + Title + Subtitle -->
+        <div class="flex items-center gap-3 min-w-0">
+          <div class="relative w-11 h-11 shrink-0 rounded-2xl bg-[#0B1957] text-white flex items-center justify-center shadow-sm border border-[#1D4ED8]/20">
+            <!-- Custom SVG JoyRide-inspired Motorcycle Icon -->
+            <svg xmlns="http://www.w3.org/2000/svg" class="w-6 h-6 text-white" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+              <circle cx="5.5" cy="17.5" r="3" />
+              <circle cx="17.5" cy="17.5" r="3" />
+              <path d="M14 6h2l2.5 7.5" />
+              <path d="M5.5 17.5 9 11h4.5l2 3.5" />
+              <path d="M9 11 7.5 8H5" />
+            </svg>
+            <!-- Calculator Badge on Top-Right of Emblem -->
+            <span class="w-5 h-5 rounded-md bg-[#F59E0B] text-[#0B1957] border-2 border-white flex items-center justify-center absolute -top-1.5 -right-1.5 shadow-xs" title="Calculator">
+              <svg xmlns="http://www.w3.org/2000/svg" class="w-3 h-3" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round">
+                <rect x="4" y="2" width="16" height="20" rx="2" />
+                <line x1="8" y1="7" x2="16" y2="7" />
+                <line x1="8" y1="12" x2="8.01" y2="12" />
+                <line x1="12" y1="12" x2="12.01" y2="12" />
+                <line x1="16" y1="12" x2="16.01" y2="12" />
+                <line x1="8" y1="16" x2="16" y2="16" />
+              </svg>
+            </span>
+          </div>
+
+          <div class="min-w-0">
+            <h1 class="font-extrabold text-base sm:text-lg tracking-tight leading-tight text-[#0B1957] truncate">
+              JoyRide Fare Calculator
+            </h1>
+            <p class="text-xs font-medium text-slate-500 leading-tight mt-0.5 truncate">
+              by XioMarley
+            </p>
+          </div>
+        </div>
+
+        <!-- Right: Install App Button -->
+        <button
+          type="button"
+          onclick="toggleModal('installModal', true)"
+          class="press-effect shrink-0 bg-[#0B1957] hover:bg-[#1D4ED8] text-white font-bold text-xs px-3 py-2 rounded-xl flex items-center gap-1.5 shadow-xs"
+        >
+          <svg xmlns="http://www.w3.org/2000/svg" class="w-3.5 h-3.5 text-[#F59E0B]" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
+            <polyline points="7 10 12 15 17 10" />
+            <line x1="12" y1="15" x2="12" y2="3" />
+          </svg>
+          <span>Install App</span>
+        </button>
+      </div>
+
+      <!-- Mode Switcher Tabs (Directly below Top Bar) -->
+      <div class="grid grid-cols-2 px-4 pb-3 gap-2">
+        <button
+          type="button"
+          id="topTabCalc"
+          onclick="switchTab('calc')"
+          class="press-effect py-2 text-xs font-bold rounded-xl bg-[#0B1957] text-white shadow-xs transition"
+        >
+          Calculator
+        </button>
+        <button
+          type="button"
+          id="topTabLog"
+          onclick="switchTab('log')"
+          class="press-effect py-2 text-xs font-bold rounded-xl bg-[#F2F4F8] text-slate-600 border border-[#E2E8F0] hover:text-[#0B1957] transition flex items-center justify-center gap-1.5"
+        >
+          <span>Biyahe Today</span>
+          <span id="topTripBadge" class="bg-[#1D4ED8] text-white text-[10px] font-extrabold px-1.5 py-0.5 rounded-full leading-none">
+            0
+          </span>
+        </button>
+      </div>
+    </header>
+
+    <!-- Toast Notification Banner -->
+    <div id="toastBanner" class="fixed top-24 left-1/2 -translate-x-1/2 z-50 hidden transition-all duration-300 pointer-events-none">
+      <div class="bg-[#0B1957] text-white text-xs font-semibold px-4 py-2.5 rounded-full shadow-xl flex items-center gap-2 border border-white/15">
+        <span class="w-2 h-2 rounded-full bg-[#F59E0B]"></span>
+        <span id="toastText">Na-save sa Biyahe Today!</span>
+      </div>
+    </div>
+
+    <!-- ========================================================= -->
+    <!-- TAB 1: CALCULATOR VIEW (6 DISTINCT PANELS)                -->
+    <!-- ========================================================= -->
+    <main id="calcView" class="p-4 space-y-4 flex-1">
+
+      <!-- PANEL 1: DISTANCE INPUT PANEL -->
+      <section class="bg-white rounded-2xl p-4 border border-[#E2E8F0] shadow-xs space-y-2.5">
+        <div class="flex items-center justify-between">
+          <label for="distanceInput" class="text-xs font-extrabold uppercase tracking-wider text-[#0B1957]">
+            1. Distansya ng Biyahe
+          </label>
+          <button
+            type="button"
+            onclick="resetDistanceAndInputs()"
+            class="press-effect text-xs font-bold text-[#1D4ED8] hover:text-[#0B1957] bg-[#F2F4F8] hover:bg-blue-50 border border-[#E2E8F0] px-2.5 py-1 rounded-lg"
+          >
+            Reset
+          </button>
+        </div>
+
+        <div class="relative flex items-center">
+          <input
+            type="number"
+            id="distanceInput"
+            inputmode="decimal"
+            step="0.1"
+            min="0"
+            placeholder="0.0"
+            value="10.4"
+            oninput="calculateAll()"
+            class="w-full text-3xl font-extrabold text-[#0B1957] bg-[#F2F4F8] border-2 border-[#E2E8F0] focus:border-[#1D4ED8] focus:bg-white rounded-2xl px-4 py-3 pr-16 outline-none transition placeholder-slate-400"
+          />
+          <span class="absolute right-3.5 text-xs font-extrabold text-[#0B1957] bg-amber-100 border border-[#F59E0B]/40 px-2.5 py-1 rounded-lg">
+            KM
+          </span>
+        </div>
+      </section>
+
+      <!-- PANEL 2: COMMISSION TIER TOGGLE PANEL -->
+      <section class="bg-white rounded-2xl p-4 border border-[#E2E8F0] shadow-xs space-y-2.5">
+        <div class="flex items-center justify-between gap-2">
+          <span class="text-xs font-extrabold uppercase tracking-wider text-[#0B1957]">
+            2. Commission Tier
+          </span>
+          <span id="activeTierPill" class="text-[11px] font-bold text-[#1D4ED8] bg-blue-50 border border-blue-200 px-2.5 py-0.5 rounded-full">
+            20% Kasundo
+          </span>
+        </div>
+
+        <div id="commissionTierGroup" role="group" aria-label="Commission Tier Options" class="grid grid-cols-2 gap-2">
+          <button
+            type="button"
+            data-rate="0.20"
+            data-name="Kasundo"
+            onclick="selectCommissionTier(0.20, 'Kasundo')"
+            class="comm-tier-btn press-effect flex flex-col items-start p-2.5 rounded-xl border-2 border-[#1D4ED8] bg-blue-50/80 text-left"
+          >
+            <span class="text-sm font-extrabold text-[#0B1957]">20% Kasundo</span>
+            <span class="text-[11px] font-semibold text-[#1D4ED8]">Standard Tier</span>
+          </button>
+
+          <button
+            type="button"
+            data-rate="0.18"
+            data-name="Master"
+            onclick="selectCommissionTier(0.18, 'Master')"
+            class="comm-tier-btn press-effect flex flex-col items-start p-2.5 rounded-xl border border-[#E2E8F0] bg-[#F2F4F8] text-left hover:border-[#1D4ED8]/50"
+          >
+            <span class="text-sm font-extrabold text-[#0B1957]">18% Master</span>
+            <span class="text-[11px] font-medium text-slate-500">Lower Comm</span>
+          </button>
+
+          <button
+            type="button"
+            data-rate="0.16"
+            data-name="Legend"
+            onclick="selectCommissionTier(0.16, 'Legend')"
+            class="comm-tier-btn press-effect flex flex-col items-start p-2.5 rounded-xl border border-[#E2E8F0] bg-[#F2F4F8] text-left hover:border-[#1D4ED8]/50"
+          >
+            <span class="text-sm font-extrabold text-[#0B1957]">16% Legend</span>
+            <span class="text-[11px] font-medium text-slate-500">Lower Comm</span>
+          </button>
+
+          <button
+            type="button"
+            data-rate="0.15"
+            data-name="Tagapagmana"
+            onclick="selectCommissionTier(0.15, 'Tagapagmana')"
+            class="comm-tier-btn press-effect flex flex-col items-start p-2.5 rounded-xl border border-[#E2E8F0] bg-[#F2F4F8] text-left hover:border-[#1D4ED8]/50"
+          >
+            <span class="text-sm font-extrabold text-[#0B1957]">15% Tagapagmana</span>
+            <span class="text-[11px] font-medium text-slate-500">Lowest Comm</span>
+          </button>
+        </div>
+      </section>
+
+      <!-- PANEL 3: DRIVER EARNINGS RECEIPT PANEL -->
+      <section class="bg-white rounded-2xl border border-[#E2E8F0] shadow-xs overflow-hidden">
+        <!-- Header: Title on Left, Selected Tier Label on Right (No "Tier 2" badge) -->
+        <div class="bg-[#F8FAFC] border-b border-[#E2E8F0] px-4 py-3 flex items-center justify-between gap-2">
+          <span class="text-xs font-extrabold uppercase tracking-wider text-[#0B1957]">
+            DRIVER EARNINGS RECEIPT
+          </span>
+          <span id="receiptTierLabel" class="text-xs font-extrabold text-[#1D4ED8] bg-blue-50 border border-blue-200/80 px-2.5 py-0.5 rounded-full">
+            20% Kasundo
+          </span>
+        </div>
+
+        <div class="p-4 space-y-3.5">
+          <!-- Highlighted Cash / eCash to Collect Box -->
+          <div class="bg-amber-50/80 border border-[#F59E0B]/40 rounded-xl p-3 text-center">
+            <p class="text-[10px] font-extrabold uppercase tracking-widest text-[#0B1957]">
+              CASH / ECASH TO COLLECT
+            </p>
+            <p id="collectFareDisplay" class="text-2xl font-extrabold text-[#0B1957] mt-0.5">
+              PHP 140.00
+            </p>
+          </div>
+
+          <!-- Receipt Breakdown Lines -->
+          <div class="space-y-2.5 text-sm">
+            <div class="flex justify-between items-center">
+              <span class="text-slate-600 font-medium">Gross Fare (Rounded)</span>
+              <span id="grossFareDisplay" class="font-bold text-[#0B1957]">PHP 140.00</span>
+            </div>
+
+            <div class="flex justify-between items-center">
+              <span id="receiptCommLineLabel" class="text-slate-600 font-medium">
+                Commission from Driver (20% Kasundo)
+              </span>
+              <span id="commissionAmountDisplay" class="font-bold text-red-600">- PHP 28.00</span>
+            </div>
+
+            <div class="border-t border-dashed border-[#E2E8F0] pt-2.5 flex justify-between items-center">
+              <div>
+                <span class="font-extrabold text-[#0B1957] text-sm block">Net App Earnings</span>
+                <span class="text-[11px] text-slate-500">Bago ibawas ang gas</span>
+              </div>
+              <span id="netAppEarningsDisplay" class="text-lg font-extrabold text-[#1D4ED8]">
+                PHP 112.00
+              </span>
+            </div>
+          </div>
+
+          <!-- Minimized / Collapsed by Default Formula Breakdown Toggle -->
+          <div class="pt-1">
+            <button
+              type="button"
+              id="formulaToggleBtn"
+              aria-expanded="false"
+              onclick="toggleFormulaBreakdown()"
+              class="press-effect w-full flex items-center justify-between text-xs font-bold text-[#0B1957] bg-[#F2F4F8] hover:bg-blue-50 border border-[#E2E8F0] px-3.5 py-2.5 rounded-xl"
+            >
+              <span>Paano ito na-compute? (Formula Breakdown)</span>
+              <svg id="formulaChevron" xmlns="http://www.w3.org/2000/svg" class="w-4 h-4 text-[#1D4ED8] transition-transform duration-200" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round">
+                <polyline points="6 9 12 15 18 9" />
+              </svg>
+            </button>
+
+            <div id="formulaBreakdownPanel" class="hidden mt-2 bg-[#F8FAFC] rounded-xl p-3 text-xs text-slate-700 space-y-1.5 border border-[#E2E8F0]">
+              <!-- Populated dynamically by calculateAll() -->
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- PANEL 4: OPTIONAL TIP & GAS PANEL -->
+      <section class="bg-white rounded-2xl p-4 border border-[#E2E8F0] shadow-xs space-y-3">
+        <div class="flex items-center justify-between gap-2">
+          <span class="text-xs font-extrabold uppercase tracking-wider text-[#0B1957]">
+            3. Tip &amp; Gas (Optional)
+          </span>
+          <button
+            type="button"
+            id="autoGasSetupBtn"
+            onclick="toggleAutoGasSetupPanel()"
+            class="text-[11px] font-bold px-2.5 py-1 rounded-lg bg-[#F2F4F8] hover:bg-blue-50 text-[#1D4ED8] border border-[#E2E8F0] transition"
+          >
+            Auto-Gas Setup
+          </button>
+        </div>
+
+        <!-- Collapsible / Toggleable Auto-Gas Setup Box -->
+        <div id="autoGasSetupPanel" class="bg-[#F2F4F8] border border-[#E2E8F0] rounded-xl p-3 space-y-2.5">
+          <div class="flex items-center justify-between gap-2">
+            <div>
+              <span class="text-xs font-bold text-[#0B1957] block">Auto-Estimate Gas per KM</span>
+              <span class="text-[11px] text-slate-500">
+                Estimated cost: <strong id="estimatedGasPerKmText" class="text-[#1D4ED8]">₱1.47 / km</strong>
+              </span>
+            </div>
+            <label class="inline-flex items-center cursor-pointer">
+              <input type="checkbox" id="autoGasToggle" checked onchange="handleAutoGasToggle()" class="sr-only peer" />
+              <div class="w-10 h-5 bg-slate-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-[#1D4ED8] relative"></div>
+            </label>
+          </div>
+
+          <div class="grid grid-cols-2 gap-2.5 pt-1">
+            <div>
+              <label for="gasPriceInput" class="block text-[10px] font-bold text-slate-500 uppercase">
+                Presyo ng Gas (₱/L)
+              </label>
+              <input
+                type="number"
+                id="gasPriceInput"
+                inputmode="decimal"
+                min="0"
+                step="0.1"
+                value="66"
+                oninput="calculateAll()"
+                class="w-full mt-1 text-sm font-bold text-[#0B1957] bg-white border border-[#E2E8F0] focus:border-[#1D4ED8] rounded-lg px-2.5 py-1.5 outline-none"
+              />
+            </div>
+
+            <div>
+              <label for="kmPerLiterInput" class="block text-[10px] font-bold text-slate-500 uppercase">
+                Konsumo (km/L)
+              </label>
+              <input
+                type="number"
+                id="kmPerLiterInput"
+                inputmode="decimal"
+                min="1"
+                step="0.5"
+                value="45"
+                oninput="calculateAll()"
+                class="w-full mt-1 text-sm font-bold text-[#0B1957] bg-white border border-[#E2E8F0] focus:border-[#1D4ED8] rounded-lg px-2.5 py-1.5 outline-none"
+              />
+            </div>
+          </div>
+        </div>
+
+        <!-- Optional Customer Tip & Gas Cost Inputs -->
+        <div class="grid grid-cols-2 gap-3">
+          <div>
+            <label for="tipInput" class="block text-xs font-semibold text-slate-700 mb-1">
+              Customer Tip (₱)
+            </label>
+            <div class="relative">
+              <span class="absolute left-3 top-1/2 -translate-y-1/2 text-xs font-extrabold text-[#1D4ED8]">+₱</span>
+              <input
+                type="number"
+                id="tipInput"
+                inputmode="decimal"
+                min="0"
+                step="1"
+                placeholder="0"
+                oninput="calculateAll()"
+                class="w-full text-base font-bold text-[#0B1957] bg-[#F2F4F8] border border-[#E2E8F0] focus:border-[#1D4ED8] focus:bg-white rounded-xl pl-8 pr-3 py-2.5 outline-none placeholder-slate-400"
+           
