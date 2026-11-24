@@ -1,0 +1,1880 @@
+<!DOCTYPE html>
+<html lang="tl">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <meta name="theme-color" content="#0B1E46" />
+  <meta name="application-name" content="JoyRideCalc" />
+  <meta name="apple-mobile-web-app-title" content="JoyRideCalc" />
+  <meta name="mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <link rel="manifest" href="manifest.json" />
+  <link rel="icon" type="image/png" sizes="192x192" href="icons/icon-192.png" />
+  <link rel="apple-touch-icon" href="icons/icon-192.png" />
+  <title>JoyRideCalc — JoyRide Fare Calculator</title>
+
+  <style>
+    /* =========================================================
+       1. DESIGN TOKENS & RESET (SELF-CONTAINED, OFFLINE-SAFE)
+       ========================================================= */
+    :root {
+      --bg-outer: #E8EEF5;
+      --bg-surface: #F3F6FA;
+      --bg-card: #FFFFFF;
+      --bg-input: #F8FAFC;
+      --navy-dark: #0B1E46;
+      --navy-mid: #132E66;
+      --royal-blue: #1D4ED8;
+      --royal-blue-soft: #EFF6FF;
+      --gold-amber: #F59E0B;
+      --gold-soft: #FFFBEB;
+      --gold-border: #FDE68A;
+      --text-main: #0F172A;
+      --text-muted: #64748B;
+      --text-light: #94A3B8;
+      --danger-red: #DC2626;
+      --danger-soft: #FEF2F2;
+      --success-green: #059669;
+      --border-light: #E2E8F0;
+      --radius-lg: 18px;
+      --radius-md: 12px;
+      --radius-sm: 8px;
+      --shadow-card: 0 2px 8px rgba(11, 30, 70, 0.05);
+      --shadow-hero: 0 8px 20px rgba(11, 30, 70, 0.18);
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    body {
+      background-color: var(--bg-outer);
+      color: var(--text-main);
+      min-height: 100vh;
+      display: flex;
+      justify-content: center;
+      line-height: 1.4;
+      overscroll-behavior-y: contain;
+    }
+
+    /* Hide native number spinners */
+    input[type="number"]::-webkit-inner-spin-button,
+    input[type="number"]::-webkit-outer-spin-button {
+      -webkit-appearance: none;
+      margin: 0;
+    }
+    input[type="number"] {
+      -moz-appearance: textfield;
+    }
+
+    /* =========================================================
+       2. APP SHELL & MINIMAL TOP HEADER
+       ========================================================= */
+    .app-shell {
+      width: 100%;
+      max-width: 440px;
+      min-height: 100vh;
+      background-color: var(--bg-surface);
+      border-left: 1px solid var(--border-light);
+      border-right: 1px solid var(--border-light);
+      display: flex;
+      flex-direction: column;
+      position: relative;
+      padding-bottom: 84px;
+      box-shadow: 0 12px 32px rgba(15, 23, 42, 0.08);
+    }
+
+    .app-header {
+      background: linear-gradient(135deg, var(--navy-dark) 0%, var(--navy-mid) 100%);
+      color: #FFFFFF;
+      padding: 18px 18px 16px;
+      position: sticky;
+      top: 0;
+      z-index: 30;
+      border-bottom: 3px solid var(--gold-amber);
+      box-shadow: 0 4px 12px rgba(11, 30, 70, 0.16);
+    }
+
+    .header-title {
+      font-size: 19px;
+      font-weight: 800;
+      letter-spacing: -0.02em;
+      color: #FFFFFF;
+      line-height: 1.2;
+    }
+
+    .header-subtitle {
+      font-size: 12px;
+      font-weight: 600;
+      color: #FCD34D;
+      margin-top: 3px;
+      letter-spacing: 0.01em;
+    }
+
+    /* =========================================================
+       3. MAIN CONTENT & PANEL CARDS
+       ========================================================= */
+    .view-container {
+      padding: 14px;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+      flex: 1;
+    }
+
+    .hidden {
+      display: none !important;
+    }
+
+    .card {
+      background-color: var(--bg-card);
+      border: 1px solid var(--border-light);
+      border-radius: var(--radius-lg);
+      padding: 16px;
+      box-shadow: var(--shadow-card);
+    }
+
+    .card-header-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 8px;
+      margin-bottom: 10px;
+    }
+
+    .section-label {
+      font-size: 11px;
+      font-weight: 800;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+      color: var(--navy-dark);
+    }
+
+    /* =========================================================
+       4. PANEL 1: DISTANCE INPUT
+       ========================================================= */
+    .btn-clear {
+      background-color: var(--bg-surface);
+      color: var(--royal-blue);
+      border: 1px solid var(--border-light);
+      border-radius: var(--radius-sm);
+      font-size: 12px;
+      font-weight: 700;
+      padding: 5px 10px;
+      cursor: pointer;
+      transition: background-color 0.15s ease, transform 0.1s ease;
+    }
+
+    .btn-clear:active {
+      transform: scale(0.96);
+      background-color: var(--royal-blue-soft);
+    }
+
+    .distance-input-wrap {
+      position: relative;
+      display: flex;
+      align-items: center;
+    }
+
+    .distance-input {
+      width: 100%;
+      background-color: var(--bg-input);
+      border: 2px solid var(--border-light);
+      border-radius: var(--radius-md);
+      padding: 12px 62px 12px 16px;
+      font-size: 30px;
+      font-weight: 800;
+      color: var(--navy-dark);
+      outline: none;
+      transition: border-color 0.15s ease, background-color 0.15s ease;
+    }
+
+    .distance-input:focus {
+      border-color: var(--royal-blue);
+      background-color: #FFFFFF;
+    }
+
+    .distance-input::placeholder {
+      color: #CBD5E1;
+    }
+
+    .km-badge {
+      position: absolute;
+      right: 12px;
+      background-color: var(--gold-soft);
+      color: var(--navy-dark);
+      border: 1px solid var(--gold-border);
+      font-size: 12px;
+      font-weight: 800;
+      padding: 5px 10px;
+      border-radius: var(--radius-sm);
+      pointer-events: none;
+    }
+
+    /* =========================================================
+       5. PANEL 2: COMMISSION TIER DROPDOWN
+       ========================================================= */
+    .select-wrap {
+      position: relative;
+      display: flex;
+      align-items: center;
+    }
+
+    .tier-select {
+      width: 100%;
+      appearance: none;
+      -webkit-appearance: none;
+      -moz-appearance: none;
+      background-color: var(--bg-input);
+      border: 2px solid var(--border-light);
+      border-radius: var(--radius-md);
+      padding: 12px 42px 12px 14px;
+      font-size: 15px;
+      font-weight: 800;
+      color: var(--navy-dark);
+      cursor: pointer;
+      outline: none;
+      transition: border-color 0.15s ease, background-color 0.15s ease;
+    }
+
+    .tier-select:focus {
+      border-color: var(--royal-blue);
+      background-color: #FFFFFF;
+    }
+
+    .select-chevron {
+      position: absolute;
+      right: 14px;
+      pointer-events: none;
+      color: var(--royal-blue);
+      display: flex;
+      align-items: center;
+    }
+
+    /* =========================================================
+       6. PANEL 3: DRIVER EARNINGS RECEIPT
+       ========================================================= */
+    .receipt-card {
+      padding: 0;
+      overflow: hidden;
+    }
+
+    .receipt-top-bar {
+      background-color: #F8FAFC;
+      border-bottom: 1px solid var(--border-light);
+      padding: 12px 16px;
+    }
+
+    .receipt-body {
+      padding: 16px;
+      display: flex;
+      flex-direction: column;
+      gap: 14px;
+    }
+
+    .collect-banner {
+      background-color: var(--gold-soft);
+      border: 1px solid var(--gold-border);
+      border-radius: var(--radius-md);
+      padding: 12px;
+      text-align: center;
+    }
+
+    .collect-label {
+      font-size: 10px;
+      font-weight: 800;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      color: #92400E;
+    }
+
+    .collect-value {
+      font-size: 26px;
+      font-weight: 800;
+      color: var(--navy-dark);
+      margin-top: 2px;
+      letter-spacing: -0.02em;
+    }
+
+    .receipt-rows {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+
+    .receipt-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      font-size: 14px;
+    }
+
+    .receipt-row-label {
+      color: #475569;
+      font-weight: 500;
+    }
+
+    .receipt-row-val {
+      font-weight: 700;
+      color: var(--navy-dark);
+      text-align: right;
+      white-space: nowrap;
+    }
+
+    .val-deduct {
+      color: var(--danger-red);
+    }
+
+    .receipt-divider {
+      border-top: 1px dashed #CBD5E1;
+      padding-top: 12px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+    }
+
+    .net-app-title {
+      font-size: 14px;
+      font-weight: 800;
+      color: var(--navy-dark);
+      display: block;
+    }
+
+    .net-app-sub {
+      font-size: 11px;
+      color: var(--text-muted);
+      display: block;
+    }
+
+    .net-app-val {
+      font-size: 19px;
+      font-weight: 800;
+      color: var(--royal-blue);
+      white-space: nowrap;
+    }
+
+    /* Collapsible Formula Breakdown */
+    .formula-toggle-btn {
+      width: 100%;
+      background-color: var(--bg-surface);
+      border: 1px solid var(--border-light);
+      border-radius: var(--radius-md);
+      padding: 10px 14px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      font-size: 12px;
+      font-weight: 700;
+      color: var(--navy-dark);
+      cursor: pointer;
+      transition: background-color 0.15s ease;
+    }
+
+    .formula-toggle-btn:hover {
+      background-color: var(--royal-blue-soft);
+    }
+
+    .chevron-icon {
+      transition: transform 0.2s ease;
+      color: var(--royal-blue);
+    }
+
+    .chevron-icon.open {
+      transform: rotate(180deg);
+    }
+
+    .formula-panel {
+      margin-top: 8px;
+      background-color: #F8FAFC;
+      border: 1px solid var(--border-light);
+      border-radius: var(--radius-md);
+      padding: 12px;
+      font-size: 12px;
+      color: #334155;
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+
+    .formula-line {
+      display: flex;
+      justify-content: space-between;
+      gap: 8px;
+    }
+
+    .formula-line strong {
+      color: var(--navy-dark);
+    }
+
+    .formula-total-line {
+      border-top: 1px solid var(--border-light);
+      padding-top: 6px;
+      margin-top: 2px;
+      display: flex;
+      justify-content: space-between;
+      font-weight: 800;
+      color: var(--navy-dark);
+    }
+
+    /* =========================================================
+       7. PANEL 4: TIP & GAS (OPTIONAL)
+       ========================================================= */
+    .auto-gas-box {
+      background-color: var(--bg-surface);
+      border: 1px solid var(--border-light);
+      border-radius: var(--radius-md);
+      padding: 12px;
+      margin-bottom: 12px;
+    }
+
+    .auto-gas-top {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+    }
+
+    .auto-gas-title {
+      font-size: 12px;
+      font-weight: 800;
+      color: var(--navy-dark);
+      display: block;
+    }
+
+    .auto-gas-rate {
+      font-size: 11px;
+      color: var(--text-muted);
+      display: block;
+      margin-top: 1px;
+    }
+
+    .auto-gas-rate strong {
+      color: var(--royal-blue);
+    }
+
+    /* Toggle Switch */
+    .switch {
+      position: relative;
+      display: inline-block;
+      width: 42px;
+      height: 24px;
+      flex-shrink: 0;
+    }
+
+    .switch input {
+      opacity: 0;
+      width: 0;
+      height: 0;
+    }
+
+    .slider {
+      position: absolute;
+      cursor: pointer;
+      inset: 0;
+      background-color: #CBD5E1;
+      transition: 0.2s;
+      border-radius: 999px;
+    }
+
+    .slider::before {
+      position: absolute;
+      content: "";
+      height: 18px;
+      width: 18px;
+      left: 3px;
+      bottom: 3px;
+      background-color: #FFFFFF;
+      transition: 0.2s;
+      border-radius: 50%;
+      box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
+    }
+
+    .switch input:checked + .slider {
+      background-color: var(--royal-blue);
+    }
+
+    .switch input:checked + .slider::before {
+      transform: translateX(18px);
+    }
+
+    .grid-2 {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+    }
+
+    .auto-gas-inputs {
+      margin-top: 10px;
+      padding-top: 10px;
+      border-top: 1px solid var(--border-light);
+    }
+
+    .mini-label {
+      display: block;
+      font-size: 10px;
+      font-weight: 800;
+      text-transform: uppercase;
+      color: var(--text-muted);
+      margin-bottom: 4px;
+    }
+
+    .mini-input {
+      width: 100%;
+      background-color: #FFFFFF;
+      border: 1px solid var(--border-light);
+      border-radius: var(--radius-sm);
+      padding: 8px 10px;
+      font-size: 14px;
+      font-weight: 700;
+      color: var(--navy-dark);
+      outline: none;
+    }
+
+    .mini-input:focus {
+      border-color: var(--royal-blue);
+    }
+
+    .field-label {
+      display: block;
+      font-size: 12px;
+      font-weight: 700;
+      color: #334155;
+      margin-bottom: 5px;
+    }
+
+    .auto-tag {
+      font-size: 10px;
+      font-weight: 800;
+      color: var(--royal-blue);
+    }
+
+    .prefix-input-wrap {
+      position: relative;
+      display: flex;
+      align-items: center;
+    }
+
+    .input-prefix {
+      position: absolute;
+      left: 11px;
+      font-size: 12px;
+      font-weight: 800;
+      pointer-events: none;
+    }
+
+    .prefix-plus {
+      color: var(--success-green);
+    }
+
+    .prefix-minus {
+      color: var(--danger-red);
+    }
+
+    .prefixed-input {
+      width: 100%;
+      background-color: var(--bg-input);
+      border: 1.5px solid var(--border-light);
+      border-radius: var(--radius-md);
+      padding: 10px 10px 10px 30px;
+      font-size: 15px;
+      font-weight: 800;
+      color: var(--navy-dark);
+      outline: none;
+      transition: border-color 0.15s ease, background-color 0.15s ease;
+    }
+
+    .prefixed-input:focus {
+      border-color: var(--royal-blue);
+      background-color: #FFFFFF;
+    }
+
+    /* =========================================================
+       8. PANEL 5: PINAKA PROFIT (TAKE-HOME) HERO CARD
+       ========================================================= */
+    .profit-hero-card {
+      background: linear-gradient(145deg, var(--navy-dark) 0%, #15357A 100%);
+      color: #FFFFFF;
+      border-radius: var(--radius-lg);
+      padding: 18px 16px;
+      box-shadow: var(--shadow-hero);
+      display: flex;
+      flex-direction: column;
+      gap: 14px;
+    }
+
+    .profit-top-row {
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      gap: 12px;
+    }
+
+    .profit-kicker {
+      font-size: 11px;
+      font-weight: 800;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+      color: #FCD34D;
+      display: block;
+    }
+
+    .profit-formula-sub {
+      font-size: 11px;
+      color: #CBD5E1;
+      display: block;
+      margin-top: 3px;
+    }
+
+    .profit-amount-col {
+      text-align: right;
+    }
+
+    .profit-big-val {
+      font-size: 28px;
+      font-weight: 800;
+      color: #FFFFFF;
+      letter-spacing: -0.02em;
+      line-height: 1.1;
+    }
+
+    .profit-per-km {
+      font-size: 12px;
+      font-weight: 700;
+      color: #93C5FD;
+      margin-top: 4px;
+    }
+
+    .btn-save-trip {
+      width: 100%;
+      background-color: var(--gold-amber);
+      color: var(--navy-dark);
+      border: none;
+      border-radius: var(--radius-md);
+      padding: 13px 16px;
+      font-size: 14px;
+      font-weight: 800;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      cursor: pointer;
+      box-shadow: 0 4px 10px rgba(245, 158, 11, 0.32);
+      transition: transform 0.1s ease, background-color 0.15s ease;
+    }
+
+    .btn-save-trip:active {
+      transform: scale(0.98);
+      background-color: #D97706;
+    }
+
+    /* =========================================================
+       9. PANEL 6: FARE MATRIX GUIDE
+       ========================================================= */
+    .matrix-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 8px;
+      text-align: center;
+    }
+
+    .matrix-tile {
+      background-color: var(--bg-surface);
+      border: 1px solid var(--border-light);
+      border-radius: var(--radius-md);
+      padding: 10px 6px;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      gap: 4px;
+    }
+
+    .matrix-range {
+      font-size: 10px;
+      font-weight: 800;
+      color: var(--text-muted);
+      letter-spacing: 0.03em;
+    }
+
+    .matrix-rate {
+      font-size: 14px;
+      font-weight: 800;
+      color: var(--navy-dark);
+    }
+
+    .matrix-note {
+      font-size: 10px;
+      font-weight: 700;
+      color: var(--royal-blue);
+    }
+
+    /* =========================================================
+       10. BIYAHE TODAY SUMMARY & TRIP LIST
+       ========================================================= */
+    .summary-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding-bottom: 12px;
+      margin-bottom: 12px;
+      border-bottom: 1px solid var(--border-light);
+    }
+
+    .today-date {
+      font-size: 11px;
+      color: var(--text-muted);
+      margin-top: 2px;
+    }
+
+    .btn-clear-trips {
+      background-color: var(--danger-soft);
+      color: var(--danger-red);
+      border: 1px solid #FECACA;
+      border-radius: var(--radius-sm);
+      font-size: 12px;
+      font-weight: 700;
+      padding: 6px 11px;
+      cursor: pointer;
+    }
+
+    .stat-tile {
+      border-radius: var(--radius-md);
+      padding: 12px;
+      border: 1px solid var(--border-light);
+      background-color: var(--bg-surface);
+    }
+
+    .stat-tile-primary {
+      background: linear-gradient(135deg, var(--navy-dark) 0%, var(--navy-mid) 100%);
+      border-color: var(--navy-dark);
+      color: #FFFFFF;
+    }
+
+    .stat-tile-tip {
+      background-color: var(--gold-soft);
+      border-color: var(--gold-border);
+    }
+
+    .stat-label {
+      font-size: 10px;
+      font-weight: 800;
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+      color: var(--text-muted);
+      display: block;
+    }
+
+    .stat-tile-primary .stat-label {
+      color: #93C5FD;
+    }
+
+    .stat-tile-tip .stat-label {
+      color: #92400E;
+    }
+
+    .stat-value {
+      font-size: 18px;
+      font-weight: 800;
+      color: var(--navy-dark);
+      display: block;
+      margin-top: 4px;
+    }
+
+    .stat-tile-primary .stat-value {
+      color: #FFFFFF;
+    }
+
+    .stat-value-gas {
+      color: var(--danger-red);
+    }
+
+    .confirm-banner {
+      background-color: #FFFFFF;
+      border: 2px solid var(--royal-blue);
+      border-radius: var(--radius-md);
+      padding: 12px 14px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+    }
+
+    .confirm-text {
+      font-size: 12px;
+      font-weight: 700;
+      color: var(--navy-dark);
+    }
+
+    .confirm-actions {
+      display: flex;
+      gap: 6px;
+      flex-shrink: 0;
+    }
+
+    .btn-confirm-no {
+      background-color: var(--bg-surface);
+      border: 1px solid var(--border-light);
+      color: #334155;
+      font-size: 12px;
+      font-weight: 700;
+      padding: 6px 10px;
+      border-radius: var(--radius-sm);
+      cursor: pointer;
+    }
+
+    .btn-confirm-yes {
+      background-color: var(--danger-red);
+      border: none;
+      color: #FFFFFF;
+      font-size: 12px;
+      font-weight: 700;
+      padding: 6px 10px;
+      border-radius: var(--radius-sm);
+      cursor: pointer;
+    }
+
+    .trip-list {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+
+    .trip-item {
+      background-color: var(--bg-surface);
+      border: 1px solid var(--border-light);
+      border-radius: var(--radius-md);
+      padding: 12px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+    }
+
+    .trip-meta-top {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      flex-wrap: wrap;
+    }
+
+    .trip-num-badge {
+      background-color: var(--navy-dark);
+      color: #FFFFFF;
+      font-size: 11px;
+      font-weight: 800;
+      padding: 2px 7px;
+      border-radius: 6px;
+    }
+
+    .trip-km {
+      font-size: 14px;
+      font-weight: 800;
+      color: var(--navy-dark);
+    }
+
+    .trip-time {
+      font-size: 11px;
+      color: var(--text-muted);
+    }
+
+    .trip-meta-sub {
+      font-size: 11px;
+      color: #475569;
+      margin-top: 5px;
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px 10px;
+    }
+
+    .trip-right {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      flex-shrink: 0;
+    }
+
+    .trip-profit-box {
+      text-align: right;
+    }
+
+    .trip-profit-lbl {
+      font-size: 9px;
+      font-weight: 800;
+      text-transform: uppercase;
+      color: var(--text-muted);
+      display: block;
+    }
+
+    .trip-profit-val {
+      font-size: 15px;
+      font-weight: 800;
+      color: var(--royal-blue);
+    }
+
+    .btn-delete-trip {
+      width: 32px;
+      height: 32px;
+      border-radius: var(--radius-sm);
+      background-color: #FFFFFF;
+      border: 1px solid var(--border-light);
+      color: #94A3B8;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+    }
+
+    .btn-delete-trip:hover {
+      color: var(--danger-red);
+      border-color: #FECACA;
+      background-color: var(--danger-soft);
+    }
+
+    .empty-state {
+      background-color: var(--bg-surface);
+      border: 1px dashed #CBD5E1;
+      border-radius: var(--radius-md);
+      padding: 24px 16px;
+      text-align: center;
+    }
+
+    .empty-title {
+      font-size: 14px;
+      font-weight: 800;
+      color: var(--navy-dark);
+    }
+
+    .empty-sub {
+      font-size: 12px;
+      color: var(--text-muted);
+      margin-top: 4px;
+    }
+
+    /* =========================================================
+       11. FIXED BOTTOM NAVIGATION & TOAST
+       ========================================================= */
+    .bottom-nav {
+      position: fixed;
+      bottom: 0;
+      width: 100%;
+      max-width: 440px;
+      background-color: #FFFFFF;
+      border-top: 1px solid var(--border-light);
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      padding: 8px 12px;
+      z-index: 30;
+      box-shadow: 0 -4px 12px rgba(15, 23, 42, 0.05);
+    }
+
+    .nav-btn {
+      background: none;
+      border: none;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 3px;
+      font-size: 11px;
+      font-weight: 700;
+      color: var(--text-muted);
+      padding: 4px;
+      cursor: pointer;
+      position: relative;
+    }
+
+    .nav-btn.active {
+      color: var(--navy-dark);
+      font-weight: 800;
+    }
+
+    .nav-btn.active svg {
+      color: var(--royal-blue);
+    }
+
+    .nav-badge {
+      position: absolute;
+      top: 0;
+      right: calc(50% - 24px);
+      background-color: var(--royal-blue);
+      color: #FFFFFF;
+      font-size: 10px;
+      font-weight: 800;
+      padding: 1px 6px;
+      border-radius: 999px;
+      line-height: 1.3;
+    }
+
+    .toast {
+      position: fixed;
+      top: 84px;
+      left: 50%;
+      transform: translateX(-50%);
+      background-color: var(--navy-dark);
+      color: #FFFFFF;
+      border: 1px solid rgba(255, 255, 255, 0.15);
+      border-radius: 999px;
+      padding: 9px 16px;
+      font-size: 12px;
+      font-weight: 700;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      box-shadow: 0 8px 20px rgba(11, 30, 70, 0.25);
+      z-index: 50;
+      white-space: nowrap;
+      pointer-events: none;
+    }
+
+    .toast-dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background-color: var(--gold-amber);
+    }
+  </style>
+</head>
+<body>
+
+  <div class="app-shell">
+
+    <!-- =========================================================
+         CLEAN & MINIMAL TOP HEADER (NO ICON, NO INSTALL BUTTON)
+         ========================================================= -->
+    <header class="app-header">
+      <h1 class="header-title">JoyRide Fare Calculator</h1>
+      <p class="header-subtitle">by XioMarley</p>
+    </header>
+
+    <!-- Toast Notification -->
+    <div id="toastBanner" class="toast hidden">
+      <span class="toast-dot"></span>
+      <span id="toastText">Na-save sa Biyahe Today!</span>
+    </div>
+
+    <!-- =========================================================
+         VIEW 1: CALCULATOR
+         ========================================================= -->
+    <main id="calcView" class="view-container">
+
+      <!-- PANEL 1: DISTANSYA NG BIYAHE (KM) -->
+      <section class="card">
+        <div class="card-header-row">
+          <label for="distanceInput" class="section-label">1. Distansya ng Biyahe (KM)</label>
+          <button type="button" class="btn-clear" onclick="clearInputs()">Clear</button>
+        </div>
+
+        <div class="distance-input-wrap">
+          <input
+            type="number"
+            id="distanceInput"
+            class="distance-input"
+            inputmode="decimal"
+            step="0.1"
+            min="0"
+            placeholder="0.0"
+            value="10.4"
+            oninput="recalculateAll()"
+          />
+          <span class="km-badge">KM</span>
+        </div>
+      </section>
+
+      <!-- PANEL 2: COMMISSION TIER (CLEAN DROPDOWN, NO EXTRA TEXT) -->
+      <section class="card">
+        <div class="card-header-row">
+          <label for="commissionSelect" class="section-label">Commission Tier</label>
+        </div>
+
+        <div class="select-wrap">
+          <select id="commissionSelect" class="tier-select" onchange="recalculateAll()">
+            <option value="0.20" data-name="Kasundo" selected>20% - Kasundo</option>
+            <option value="0.18" data-name="Master">18% - Master</option>
+            <option value="0.16" data-name="Legend">16% - Legend</option>
+            <option value="0.15" data-name="Tagapagmana">15% - Tagapagmana</option>
+          </select>
+          <span class="select-chevron">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+              <polyline points="6 9 12 15 18 9"></polyline>
+            </svg>
+          </span>
+        </div>
+      </section>
+
+      <!-- PANEL 3: DRIVER EARNINGS RECEIPT -->
+      <section class="card receipt-card">
+        <div class="receipt-top-bar">
+          <span class="section-label">Driver Earnings Receipt</span>
+        </div>
+
+        <div class="receipt-body">
+          <div class="collect-banner">
+            <div class="collect-label">Cash / eCash to Collect</div>
+            <div id="collectAmountDisplay" class="collect-value">PHP 140.00</div>
+          </div>
+
+          <div class="receipt-rows">
+            <div class="receipt-row">
+              <span class="receipt-row-label">Gross Fare (Rounded)</span>
+              <span id="grossFareDisplay" class="receipt-row-val">PHP 140.00</span>
+            </div>
+
+            <div class="receipt-row">
+              <span id="commissionLabelDisplay" class="receipt-row-label">Commission (20% Kasundo)</span>
+              <span id="commissionValueDisplay" class="receipt-row-val val-deduct">- PHP 28.00</span>
+            </div>
+
+            <div class="receipt-divider">
+              <div>
+                <span class="net-app-title">Net App Earnings</span>
+                <span class="net-app-sub">bago ibawas ang gas</span>
+              </div>
+              <span id="netAppEarningsDisplay" class="net-app-val">PHP 112.00</span>
+            </div>
+          </div>
+
+          <!-- Minimized / Closed by Default Formula Breakdown -->
+          <div>
+            <button
+              type="button"
+              id="formulaToggleBtn"
+              class="formula-toggle-btn"
+              aria-expanded="false"
+              onclick="toggleFormula()"
+            >
+              <span>Formula Breakdown</span>
+              <svg id="formulaChevron" class="chevron-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                <polyline points="6 9 12 15 18 9"></polyline>
+              </svg>
+            </button>
+
+            <div id="formulaContent" class="formula-panel hidden"></div>
+          </div>
+        </div>
+      </section>
+
+      <!-- PANEL 4: TIP & GASTOS SA GAS (OPTIONAL) -->
+      <section class="card">
+        <div class="card-header-row">
+          <span class="section-label">2. Tip &amp; Gastos sa Gas (Optional)</span>
+        </div>
+
+        <div class="auto-gas-box">
+          <div class="auto-gas-top">
+            <div>
+              <span class="auto-gas-title">Auto-Gas Estimator</span>
+              <span class="auto-gas-rate">Estimated cost: <strong id="gasPerKmLabel">₱1.47 / km</strong></span>
+            </div>
+            <label class="switch" aria-label="Toggle Auto-Gas Estimator">
+              <input type="checkbox" id="autoGasCheckbox" checked onchange="handleAutoGasToggle()" />
+              <span class="slider"></span>
+            </label>
+          </div>
+
+          <div id="autoGasFields" class="grid-2 auto-gas-inputs">
+            <div>
+              <label for="gasPriceInput" class="mini-label">Presyo ng Gas (₱/L)</label>
+              <input
+                type="number"
+                id="gasPriceInput"
+                class="mini-input"
+                inputmode="decimal"
+                step="0.1"
+                min="0"
+                value="66"
+                oninput="saveGasSettings(); recalculateAll();"
+              />
+            </div>
+
+            <div>
+              <label for="kmPerLiterInput" class="mini-label">Konsumo (km/L)</label>
+              <input
+                type="number"
+                id="kmPerLiterInput"
+                class="mini-input"
+                inputmode="decimal"
+                step="0.5"
+                min="1"
+                value="45"
+                oninput="saveGasSettings(); recalculateAll();"
+              />
+            </div>
+          </div>
+        </div>
+
+        <div class="grid-2">
+          <div>
+            <label for="tipInput" class="field-label">Customer Tip (₱)</label>
+            <div class="prefix-input-wrap">
+              <span class="input-prefix prefix-plus">+₱</span>
+              <input
+                type="number"
+                id="tipInput"
+                class="prefixed-input"
+                inputmode="decimal"
+                step="1"
+                min="0"
+                placeholder="0"
+                oninput="recalculateAll()"
+              />
+            </div>
+          </div>
+
+          <div>
+            <label for="gasCostInput" class="field-label">
+              Gastos sa Gas (₱) <span id="gasAutoTag" class="auto-tag">(Auto)</span>
+            </label>
+            <div class="prefix-input-wrap">
+              <span class="input-prefix prefix-minus">-₱</span>
+              <input
+                type="number"
+                id="gasCostInput"
+                class="prefixed-input"
+                inputmode="decimal"
+                step="0.01"
+                min="0"
+                placeholder="0.00"
+                oninput="handleManualGasInput()"
+              />
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- PANEL 5: PINAKA PROFIT (TAKE-HOME) HERO CARD -->
+      <section class="profit-hero-card">
+        <div class="profit-top-row">
+          <div>
+            <span class="profit-kicker">Pinaka Profit (Take-Home)</span>
+            <span class="profit-formula-sub">Net App Earnings + Tip - Gas</span>
+          </div>
+          <div class="profit-amount-col">
+            <div id="takeHomeDisplay" class="profit-big-val">₱96.75</div>
+            <div id="netPerKmDisplay" class="profit-per-km">₱9.30 net / km</div>
+          </div>
+        </div>
+
+        <button type="button" class="btn-save-trip" onclick="saveTrip()">
+          <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"></path>
+            <polyline points="17 21 17 13 7 13 7 21"></polyline>
+            <polyline points="7 3 7 8 15 8"></polyline>
+          </svg>
+          <span>I-save sa Biyahe Today</span>
+        </button>
+      </section>
+
+      <!-- PANEL 6: JOYRIDE MC TAXI FARE MATRIX GUIDE -->
+      <section class="card">
+        <div class="card-header-row">
+          <span class="section-label">JoyRide MC Taxi Fare Matrix Guide</span>
+        </div>
+
+        <div class="matrix-grid">
+          <div class="matrix-tile">
+            <span class="matrix-range">0 - 2.0 KM</span>
+            <span class="matrix-rate">₱50.00</span>
+            <span class="matrix-note">Base Fare</span>
+          </div>
+
+          <div class="matrix-tile">
+            <span class="matrix-range">2.1 - 8.0 KM</span>
+            <span class="matrix-rate">₱9.00/km</span>
+            <span class="matrix-note">Max ₱104 @ 8km</span>
+          </div>
+
+          <div class="matrix-tile">
+            <span class="matrix-range">ABOVE 8.0 KM</span>
+            <span class="matrix-rate">₱15.00/km</span>
+            <span class="matrix-note">+Comm</span>
+          </div>
+        </div>
+      </section>
+
+    </main>
+
+    <!-- =========================================================
+         VIEW 2: BIYAHE TODAY
+         ========================================================= -->
+    <main id="logView" class="view-container hidden">
+
+      <section class="card">
+        <div class="summary-header">
+          <div>
+            <span class="section-label">Biyahe Today Summary</span>
+            <div id="todayDateLabel" class="today-date"></div>
+          </div>
+          <button type="button" class="btn-clear-trips" onclick="requestClearAll()">Clear All</button>
+        </div>
+
+        <div class="grid-2">
+          <div class="stat-tile stat-tile-primary">
+            <span class="stat-label">Total Take-Home Profit</span>
+            <span id="sumTakeHome" class="stat-value">₱0.00</span>
+          </div>
+
+          <div class="stat-tile">
+            <span class="stat-label">Total Distance Natakbo</span>
+            <span id="sumDistance" class="stat-value">0.0 km</span>
+          </div>
+
+          <div class="stat-tile">
+            <span class="stat-label">Total Gas Used</span>
+            <span id="sumGas" class="stat-value stat-value-gas">₱0.00</span>
+          </div>
+
+          <div class="stat-tile stat-tile-tip">
+            <span class="stat-label">Total Tips</span>
+            <span id="sumTips" class="stat-value">₱0.00</span>
+          </div>
+        </div>
+      </section>
+
+      <!-- Inline Clear Confirmation -->
+      <div id="clearConfirmBox" class="confirm-banner hidden">
+        <span class="confirm-text">Burahin lahat ng naka-save na biyahe?</span>
+        <div class="confirm-actions">
+          <button type="button" class="btn-confirm-no" onclick="cancelClearAll()">Hindi</button>
+          <button type="button" class="btn-confirm-yes" onclick="confirmClearAll()">Oo, Burahin</button>
+        </div>
+      </div>
+
+      <section class="card">
+        <div class="card-header-row">
+          <span class="section-label">Saved Trips</span>
+          <span id="tripCountText" class="today-date">0 trips</span>
+        </div>
+
+        <div id="savedTripsList" class="trip-list"></div>
+      </section>
+
+    </main>
+
+    <!-- =========================================================
+         FIXED BOTTOM NAVIGATION BAR
+         ========================================================= -->
+    <nav class="bottom-nav">
+      <button type="button" id="navCalcBtn" class="nav-btn active" onclick="switchView('calc')">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+          <rect x="4" y="2" width="16" height="20" rx="2"></rect>
+          <line x1="8" y1="6" x2="16" y2="6"></line>
+          <line x1="16" y1="14" x2="16" y2="18"></line>
+          <path d="M16 10h.01"></path>
+          <path d="M12 10h.01"></path>
+          <path d="M8 10h.01"></path>
+          <path d="M12 14h.01"></path>
+          <path d="M8 14h.01"></path>
+          <path d="M12 18h.01"></path>
+          <path d="M8 18h.01"></path>
+        </svg>
+        <span>Calculator</span>
+      </button>
+
+      <button type="button" id="navLogBtn" class="nav-btn" onclick="switchView('log')">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+          <line x1="8" y1="6" x2="21" y2="6"></line>
+          <line x1="8" y1="12" x2="21" y2="12"></line>
+          <line x1="8" y1="18" x2="21" y2="18"></line>
+          <line x1="3" y1="6" x2="3.01" y2="6"></line>
+          <line x1="3" y1="12" x2="3.01" y2="12"></line>
+          <line x1="3" y1="18" x2="3.01" y2="18"></line>
+        </svg>
+        <span id="navTripBadge" class="nav-badge hidden">0</span>
+        <span>Biyahe Today</span>
+      </button>
+    </nav>
+
+  </div>
+
+  <script>
+    // =========================================================
+    // CONSTANTS & LOCAL STORAGE KEYS
+    // =========================================================
+    const FARE_MATRIX = {
+      BASE_KM: 2.0,
+      BASE_FARE: 50.0,
+      TIER1_MAX_KM: 8.0,
+      TIER1_RATE: 9.0,
+      TIER2_RATE: 15.0
+    };
+
+    const STORAGE_KEYS = {
+      TRIPS: 'joyridecalc_trips_v2',
+      GAS_SETTINGS: 'joyridecalc_gas_v2'
+    };
+
+    let currentResult = null;
+
+    // =========================================================
+    // FORMATTING HELPERS
+    // =========================================================
+    function formatPHP(amount) {
+      const val = Number(amount) || 0;
+      return `PHP ${val.toLocaleString('en-PH', {
+        minimumFractionDigits: 2,
+        maximumFractionDigits: 2
+      })}`;
+    }
+
+    function formatPesoSymbol(amount) {
+      const val = Number(amount) || 0;
+      return `₱${val.toLocaleString('en-PH', {
+        minimumFractionDigits: 2,
+        maximumFractionDigits: 2
+      })}`;
+    }
+
+    function getSelectedTier() {
+      const selectEl = document.getElementById('commissionSelect');
+      const option = selectEl.options[selectEl.selectedIndex];
+      return {
+        rate: parseFloat(selectEl.value) || 0.20,
+        name: option ? option.getAttribute('data-name') || 'Kasundo' : 'Kasundo'
+      };
+    }
+
+    // =========================================================
+    // FARE & EARNINGS CALCULATION ENGINE
+    // =========================================================
+    function computeTripMetrics(distVal, tipVal, gasVal, commRate, commName) {
+      const dist = Math.max(0, parseFloat(distVal) || 0);
+      const tip = Math.max(0, parseFloat(tipVal) || 0);
+      const gas = Math.max(0, parseFloat(gasVal) || 0);
+      const rate = Math.max(0, Number(commRate) || 0);
+
+      let baseFare = 0;
+      let tier1Km = 0;
+      let tier1Fare = 0;
+      let tier2Km = 0;
+      let tier2Fare = 0;
+      let rawFare = 0;
+
+      if (dist > 0) {
+        baseFare = FARE_MATRIX.BASE_FARE;
+        if (dist <= FARE_MATRIX.BASE_KM) {
+          rawFare = baseFare;
+        } else if (dist <= FARE_MATRIX.TIER1_MAX_KM) {
+          tier1Km = +(dist - FARE_MATRIX.BASE_KM).toFixed(2);
+          tier1Fare = +(tier1Km * FARE_MATRIX.TIER1_RATE).toFixed(2);
+          rawFare = +(baseFare + tier1Fare).toFixed(2);
+        } else {
+          tier1Km = +(FARE_MATRIX.TIER1_MAX_KM - FARE_MATRIX.BASE_KM).toFixed(2);
+          tier1Fare = +(tier1Km * FARE_MATRIX.TIER1_RATE).toFixed(2);
+          tier2Km = +(dist - FARE_MATRIX.TIER1_MAX_KM).toFixed(2);
+          tier2Fare = +(tier2Km * FARE_MATRIX.TIER2_RATE).toFixed(2);
+          rawFare = +(baseFare + tier1Fare + tier2Fare).toFixed(2);
+        }
+      }
+
+      // Nearest whole peso rounding
+      const roundedGrossFare = dist > 0 ? Math.round(rawFare) : 0;
+      const commission = +(roundedGrossFare * rate).toFixed(2);
+      const netAppEarnings = +(roundedGrossFare - commission).toFixed(2);
+      const takeHomeProfit = +(netAppEarnings + tip - gas).toFixed(2);
+      const netPerKm = dist > 0 ? +(takeHomeProfit / dist).toFixed(2) : 0;
+
+      return {
+        dist,
+        baseFare,
+        tier1Km,
+        tier1Fare,
+        tier2Km,
+        tier2Fare,
+        rawFare,
+        roundedGrossFare,
+        commRate: rate,
+        commName,
+        commission,
+        netAppEarnings,
+        tip,
+        gas,
+        takeHomeProfit,
+        netPerKm
+      };
+    }
+
+    function recalculateAll() {
+      const distRaw = document.getElementById('distanceInput').value;
+      const tipRaw = document.getElementById('tipInput').value;
+      const isAutoGas = document.getElementById('autoGasCheckbox').checked;
+
+      const gasPrice = Math.max(0, parseFloat(document.getElementById('gasPriceInput').value) || 0);
+      const kmPerLiter = Math.max(0.1, parseFloat(document.getElementById('kmPerLiterInput').value) || 45);
+      const gasCostPerKm = gasPrice / kmPerLiter;
+
+      document.getElementById('gasPerKmLabel').textContent = `₱${gasCostPerKm.toFixed(2)} / km`;
+
+      if (isAutoGas) {
+        const distNum = Math.max(0, parseFloat(distRaw) || 0);
+        const estimatedGas = +(distNum * gasCostPerKm).toFixed(2);
+        document.getElementById('gasCostInput').value = distNum > 0 ? estimatedGas.toFixed(2) : '';
+      }
+
+      const gasRaw = document.getElementById('gasCostInput').value;
+      const tier = getSelectedTier();
+      const res = computeTripMetrics(distRaw, tipRaw, gasRaw, tier.rate, tier.name);
+      currentResult = res;
+
+      // Update Driver Earnings Receipt
+      const pctLabel = Math.round(res.commRate * 100);
+      document.getElementById('collectAmountDisplay').textContent = formatPHP(res.roundedGrossFare);
+      document.getElementById('grossFareDisplay').textContent = formatPHP(res.roundedGrossFare);
+      document.getElementById('commissionLabelDisplay').textContent = `Commission (${pctLabel}% ${res.commName})`;
+      document.getElementById('commissionValueDisplay').textContent = `- ${formatPHP(res.commission)}`;
+      document.getElementById('netAppEarningsDisplay').textContent = formatPHP(res.netAppEarnings);
+
+      // Update Pinaka Profit (Take-Home)
+      document.getElementById('takeHomeDisplay').textContent = formatPesoSymbol(res.takeHomeProfit);
+      document.getElementById('netPerKmDisplay').textContent =
+        res.dist > 0 ? `₱${res.netPerKm.toFixed(2)} net / km` : 'Ilagay ang distansya';
+
+      // Update Formula Breakdown Panel
+      renderFormulaBreakdown(res);
+
+      // Keep Biyahe Today recalculated with selected commission tier
+      renderSavedTrips();
+    }
+
+    function renderFormulaBreakdown(res) {
+      const box = document.getElementById('formulaContent');
+      if (res.dist <= 0) {
+        box.innerHTML = `<div style="color:#64748B;">Maglagay ng distansya (km) upang makita ang computation.</div>`;
+        return;
+      }
+
+      const pct = Math.round(res.commRate * 100);
+      let html = `
+        <div class="formula-line">
+          <span>Base Fare (unang 2.0 km):</span>
+          <strong>₱${res.baseFare.toFixed(2)}</strong>
+        </div>
+      `;
+
+      if (res.tier1Km > 0) {
+        html += `
+          <div class="formula-line">
+            <span>Tier 1 (${res.tier1Km.toFixed(2)} km × ₱9.00/km):</span>
+            <strong>₱${res.tier1Fare.toFixed(2)}</strong>
+          </div>
+        `;
+      }
+
+      if (res.tier2Km > 0) {
+        html += `
+          <div class="formula-line">
+            <span>Tier 2 (${res.tier2Km.toFixed(2)} km × ₱15.00/km):</span>
+            <strong>₱${res.tier2Fare.toFixed(2)}</strong>
+          </div>
+        `;
+      }
+
+      html += `
+        <div class="formula-total-line">
+          <span>Raw Total → Rounded Fare:</span>
+          <span>₱${res.rawFare.toFixed(2)} → ₱${res.roundedGrossFare}.00</span>
+        </div>
+        <div class="formula-line">
+          <span>Commission (${pct}% ${res.commName}):</span>
+          <strong style="color:#DC2626;">-₱${res.commission.toFixed(2)}</strong>
+        </div>
+        <div class="formula-line">
+          <span>Gastos sa Gas:</span>
+          <strong style="color:#DC2626;">-₱${res.gas.toFixed(2)}</strong>
+        </div>
+      `;
+
+      if (res.tip > 0) {
+        html += `
+          <div class="formula-line">
+            <span>Customer Tip (100% sa driver):</span>
+            <strong style="color:#059669;">+₱${res.tip.toFixed(2)}</strong>
+          </div>
+        `;
+      }
+
+      box.innerHTML = html;
+    }
+
+    // =========================================================
+    // UI INTERACTIONS & GAS SETTINGS PERSISTENCE
+    // =========================================================
+    function clearInputs() {
+      document.getElementById('distanceInput').value = '';
+      document.getElementById('tipInput').value = '';
+      document.getElementById('gasCostInput').value = '';
+      recalculateAll();
+    }
+
+    function toggleFormula() {
+      const content = document.getElementById('formulaContent');
+      const chevron = document.getElementById('formulaChevron');
+      const btn = document.getElementById('formulaToggleBtn');
+      const isHidden = content.classList.toggle('hidden');
+      chevron.classList.toggle('open', !isHidden);
+      btn.setAttribute('aria-expanded', String(!isHidden));
+    }
+
+    function handleAutoGasToggle() {
+      const isChecked = document.getElementById('autoGasCheckbox').checked;
+      const fields = document.getElementById('autoGasFields');
+      const tag = document.getElementById('gasAutoTag');
+
+      fields.classList.toggle('hidden', !isChecked);
+      tag.classList.toggle('hidden', !isChecked);
+      saveGasSettings();
+      recalculateAll();
+    }
+
+    function handleManualGasInput() {
+      const checkbox = document.getElementById('autoGasCheckbox');
+      if (checkbox.checked) {
+        checkbox.checked = false;
+        document.getElementById('autoGasFields').classList.add('hidden');
+        document.getElementById('gasAutoTag').classList.add('hidden');
+        saveGasSettings();
+      }
+      recalculateAll();
+    }
+
+    function saveGasSettings() {
+      try {
+        const settings = {
+          autoGas: document.getElementById('autoGasCheckbox').checked,
+          gasPrice: document.getElementById('gasPriceInput').value,
+          kmPerLiter: document.getElementById('kmPerLiterInput').value
+        };
+        localStorage.setItem(STORAGE_KEYS.GAS_SETTINGS, JSON.stringify(settings));
+      } catch (e) {}
+    }
+
+    function loadGasSettings() {
+      try {
+        const raw = localStorage.getItem(STORAGE_KEYS.GAS_SETTINGS);
+        if (!raw) return;
+        const settings = JSON.parse(raw);
+        if (typeof settings.gasPrice !== 'undefined') {
+          document.getElementById('gasPriceInput').value = settings.gasPrice;
+        }
+        if (typeof settings.kmPerLiter !== 'undefined') {
+          document.getElementById('kmPerLiterInput').value = settings.kmPerLiter;
+        }
+        if (typeof settings.autoGas === 'boolean') {
+          document.getElementById('autoGasCheckbox').checked = settings.autoGas;
+          document.getElementById('autoGasFields').classList.toggle('hidden', !settings.autoGas);
+          document.getElementById('gasAutoTag').classList.toggle('hidden', !settings.autoGas);
+        }
+      } catch (e) {}
+    }
+
+    // =========================================================
+    // BIYAHE TODAY STORAGE & RENDERING
+    // =========================================================
+    function getSavedTrips() {
+      try {
+        const raw = localStorage.getItem(STORAGE_KEYS.TRIPS);
+        const list = raw ? JSON.parse(raw) : [];
+        return Array.isArray(list) ? list : [];
+      } catch (e) {
+        return [];
+      }
+    }
+
+    function setSavedTrips(trips) {
+      try {
+        localStorage.setItem(STORAGE_KEYS.TRIPS, JSON.stringify(trips));
+      } catch (e) {}
+    }
+
+    function saveTrip() {
+      if (!currentResult || currentResult.dist <= 0) {
+        showToast('Ilagay muna ang distansya ng biyahe (km).');
+        return;
+      }
+
+      const trips = getSavedTrips();
+      const timeStr = new Date().toLocaleTimeString('en-PH', {
+        hour: 'numeric',
+        minute: '2-digit'
+      });
+
+      trips.unshift({
+        id: Date.now() + Math.floor(Math.random() * 1000),
+        time: timeStr,
+        dist: currentResult.dist,
+        tip: currentResult.tip,
+        gas: currentResult.gas
+      });
+
+      setSavedTrips(trips);
+      renderSavedTrips();
+      showToast(`Na-save: ${currentResult.dist.toFixed(1)} km • ${formatPesoSymbol(currentResult.takeHomeProfit)}`);
+    }
+
+    function deleteTrip(id) {
+      const filtered = getSavedTrips().filter(t => t.id !== id);
+      setSavedTrips(filtered);
+      renderSavedTrips();
+      showToast('Natanggal ang biyahe.');
+    }
+
+    function requestClearAll() {
+      if (getSavedTrips().length === 0) return;
+      document.getElementById('clearConfirmBox').classList.remove('hidden');
+    }
+
+    function cancelClearAll() {
+      document.getElementById('clearConfirmBox').classList.add('hidden');
+    }
+
+    function confirmClearAll() {
+      setSavedTrips([]);
+      cancelClearAll();
+      renderSavedTrips();
+      showToast('Nabura na lahat ng biyahe.');
+    }
+
+    function renderSavedTrips() {
+      const trips = getSavedTrips();
+      const tier = getSelectedTier();
+      const badge = document.getElementById('navTripBadge');
+
+      if (trips.length > 0) {
+        badge.textContent = trips.length;
+        badge.classList.remove('hidden');
+      } else {
+        badge.classList.add('hidden');
+      }
+
+      document.getElementById('tripCountText').textContent = `${trips.length} ${trips.length === 1 ? 'trip' : 'trips'}`;
+
+      let totalProfit = 0;
+      let totalKm = 0;
+      let totalGas = 0;
+      let totalTips = 0;
+
+      const computedList = trips.map(item => {
+        const calc = computeTripMetrics(item.dist, item.tip, item.gas, tier.rate, tier.name);
+        totalProfit += calc.takeHomeProfit;
+        totalKm += calc.dist;
+        totalGas += calc.gas;
+        totalTips += calc.tip;
+        return { ...item, ...calc };
+      });
+
+      document.getElementById('sumTakeHome').textContent = formatPesoSymbol(totalProfit);
+      document.getElementById('sumDistance').textContent = `${totalKm.toFixed(1)} km`;
+      document.getElementById('sumGas').textContent = formatPesoSymbol(totalGas);
+      document.getElementById('sumTips').textContent = formatPesoSymbol(totalTips);
+
+      const container = document.getElementById('savedTripsList');
+      if (computedList.length === 0) {
+        container.innerHTML = `
+          <div class="empty-state">
+            <div class="empty-title">Wala pang naka-save na biyahe</div>
+            <div class="empty-sub">Pindutin ang <strong>"I-save sa Biyahe Today"</strong> sa Calculator para mag-record.</div>
+          </div>
+        `;
+        return;
+      }
+
+      container.innerHTML = computedList
+        .map((trip, index) => `
+          <div class="trip-item">
+            <div>
+              <div class="trip-meta-top">
+                <span class="trip-num-badge">#${computedList.length - index}</span>
+                <span class="trip-km">${trip.dist.toFixed(1)} km</span>
+                <span class="trip-time">• ${trip.time || ''}</span>
+              </div>
+              <div class="trip-meta-sub">
+                <span>Fare: <strong>₱${trip.roundedGrossFare}</strong></span>
+                <span>Comm: <strong style="color:#DC2626;">-₱${trip.commission.toFixed(2)}</strong></span>
+                <span>Tip: <strong style="color:#059669;">+₱${trip.tip.toFixed(0)}</strong></span>
+                <span>Gas: <strong>-₱${trip.gas.toFixed(2)}</strong></span>
+              </div>
+            </div>
+
+            <div class="trip-right">
+              <div class="trip-profit-box">
+                <span class="trip-profit-lbl">Take-Home</span>
+                <span class="trip-profit-val">${formatPesoSymbol(trip.takeHomeProfit)}</span>
+              </div>
+              <button type="button" class="btn-delete-trip" aria-label="Delete trip" onclick="deleteTrip(${trip.id})">
+                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                  <polyline points="3 6 5 6 21 6"></polyline>
+                  <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
+                </svg>
+              </button>
+            </div>
+          </div>
+        `)
+        .join('');
+    }
+
+    // =========================================================
+    // VIEW SWITCHING & TOAST
+    // =========================================================
+    function switchView(view) {
+      const calcView = document.getElementById('calcView');
+      const logView = document.getElementById('logView');
+      const navCalc = document.getElementById('navCalcBtn');
+      const navLog = document.getElementById('navLogBtn');
+
+      if (view === 'calc') {
+        calcView.classList.remove('hidden');
+        logView.classList.add('hidden');
+        navCalc.classList.add('active');
+        navLog.classList.remove('active');
+      } else {
+        calcView.classList.add('hidden');
+        logView.classList.remove('hidden');
+        navLog.classList.add('active');
+        navCalc.classList.remove('active');
+        renderSavedTrips();
+      }
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+
+    let toastTimeout = null;
+    function showToast(msg) {
+      const toast = document.getElementById('toastBanner');
+      document.getElementById('toastText').textContent = msg;
+      toast.classList.remove('hidden');
+      if (toastTimeout) clearTimeout(toastTimeout);
+      toastTimeout = setTimeout(() => {
+        toast.classList.add('hidden');
+      }, 2400);
+    }
+
+    // =========================================================
+    // INIT ON LOAD
+    // =========================================================
+    window.addEventListener('DOMContentLoaded', () => {
+      document.getElementById('todayDateLabel').textContent = new Date().toLocaleDateString('en-PH', {
+        weekday: 'long',
+        month: 'short',
+        day: 'numeric',
+        year: 'numeric'
+      });
+
+      loadGasSettings();
+      recalculateAll();
+    });
+  </script>
+
+  <script>
+    // Register the offline service worker for the installable JoyRideCalc PWA.
+    if ('serviceWorker' in navigator) {
+      window.addEventListener('load', () => {
+        navigator.serviceWorker.register('./sw.js').catch(() => {});
+      });
+    }
+  </script>
+
+</body>
+</html>
